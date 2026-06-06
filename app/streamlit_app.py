@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
@@ -43,8 +44,11 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
         st.header("Filters")
         agents = sorted(df["agent_name"].unique())
         statuses = sorted(df["status"].unique())
+        tasks = sorted(df["task_name"].unique())
         selected_agents = st.multiselect("Agent name", agents, default=agents)
         selected_statuses = st.multiselect("Run status", statuses, default=statuses)
+        selected_tasks = st.multiselect("Task name", tasks, default=tasks)
+        min_confidence = st.slider("Minimum confidence", 0.0, 1.0, 0.0, 0.05)
 
         min_date = df["timestamp"].dt.date.min()
         max_date = df["timestamp"].dt.date.max()
@@ -55,13 +59,17 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
             max_value=max_date,
         )
 
-    filtered = df[df["agent_name"].isin(selected_agents) & df["status"].isin(selected_statuses)]
+    selected_range = None
     if isinstance(date_range, tuple) and len(date_range) == 2:
-        start, end = date_range
-        filtered = filtered[
-            (filtered["timestamp"].dt.date >= start) & (filtered["timestamp"].dt.date <= end)
-        ]
-    return filtered
+        selected_range = date_range
+    return filter_telemetry(
+        df,
+        agents=selected_agents,
+        statuses=selected_statuses,
+        tasks=selected_tasks,
+        date_range=selected_range,
+        min_confidence=min_confidence,
+    )
 
 
 def main() -> None:
