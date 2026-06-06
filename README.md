@@ -48,6 +48,8 @@ See [`docs/session_exploration.md`](docs/session_exploration.md) for the run-lev
 
 See [`docs/telemetry_analytics.md`](docs/telemetry_analytics.md) for the analytics engine, scoring formulas, exports, and dashboard page added in Phase 3.
 
+See [`docs/multi_agent_observability.md`](docs/multi_agent_observability.md) for the multi-agent registry, hierarchy, communication, orchestration, and workflow features added in Phase 4.
+
 ## Features
 
 - Streamlit dashboard using local sample data
