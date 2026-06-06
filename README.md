@@ -46,6 +46,8 @@ The sidebar lets you load a local telemetry file and filter by agent, status, ta
 
 See [`docs/session_exploration.md`](docs/session_exploration.md) for the run-level exploration workflow added in Phase 2.
 
+See [`docs/telemetry_analytics.md`](docs/telemetry_analytics.md) for the analytics engine, scoring formulas, exports, and dashboard page added in Phase 3.
+
 ## Features
 
 - Streamlit dashboard using local sample data

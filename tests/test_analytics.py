@@ -15,6 +15,7 @@ from agent_telemetry_dashboard.analytics import (
     tool_reliability_metrics,
 )
 from agent_telemetry_dashboard.loader import load_telemetry
+from agent_telemetry_dashboard.metrics import overview_metrics
 
 DATA = Path(__file__).resolve().parents[1] / "data" / "sample_telemetry.json"
 
@@ -157,3 +158,30 @@ def test_run_quality_scores_are_bounded_and_ranked() -> None:
     assert set(scores.columns) == {"run_id", "agent_name", "task_name", "status", "quality_score"}
     assert scores["quality_score"].between(0, 100).all()
     assert scores["quality_score"].is_monotonic_decreasing
+
+
+def test_aggregate_metrics_stay_consistent_with_overview_metrics() -> None:
+    df = load_telemetry(DATA)
+    analytics = aggregate_metrics(df)
+    overview = overview_metrics(df)
+
+    assert analytics["runs"] == overview["runs"]
+    assert analytics["failed_runs"] == overview["failed_runs"]
+    assert analytics["total_tool_calls"] == overview["total_tool_calls"]
+
+
+def test_analytics_functions_handle_empty_dataframes() -> None:
+    df = load_telemetry(DATA).iloc[0:0]
+
+    assert aggregate_metrics(df)["runs"] == 0
+    assert agent_performance_scores(df).empty
+    assert success_rates(df).empty
+    assert failure_rates(df).empty
+    assert latency_trend(df).empty
+    assert confidence_trend(df).empty
+    assert drift_trend(df).empty
+    assert memory_usage_trend(df).empty
+    assert detect_anomalies(df).empty
+    assert tool_reliability_metrics(df).empty
+    assert retry_effectiveness_metrics(df).empty
+    assert run_quality_scores(df).empty
