@@ -11,6 +11,7 @@ from agent_telemetry_dashboard.multi_agent import (
     agent_hierarchy,
     agent_relationship_graph,
     communication_events_to_dataframe,
+    handoff_tracking,
 )
 
 
@@ -118,3 +119,23 @@ def test_communication_events_convert_to_dataframe() -> None:
 
     assert frame.loc[0, "source_agent"] == "Planner"
     assert frame.loc[0, "target_agent"] == "Worker"
+
+
+def test_handoff_tracking_extracts_handoff_rows() -> None:
+    df = pd.DataFrame(
+        [
+            {
+                "run_id": "run-002",
+                "timestamp": pd.Timestamp("2026-05-20T09:10:00"),
+                "handoff_from": "Planner",
+                "handoff_to": "Worker",
+                "task_name": "Execute",
+                "status": "success",
+            }
+        ]
+    )
+
+    handoffs = handoff_tracking(df)
+
+    assert len(handoffs) == 1
+    assert handoffs.loc[0, "handoff_from"] == "Planner"

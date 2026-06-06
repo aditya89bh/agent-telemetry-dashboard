@@ -102,3 +102,14 @@ def communication_events_to_dataframe(
     return pd.DataFrame([event.model_dump() for event in events], columns=columns).sort_values(
         "timestamp"
     )
+
+
+def handoff_tracking(df: pd.DataFrame) -> pd.DataFrame:
+    """Return handoff transitions from optional multi-agent telemetry columns."""
+    columns = ["run_id", "timestamp", "handoff_from", "handoff_to", "task_name", "status"]
+    if df.empty or "handoff_from" not in df.columns or "handoff_to" not in df.columns:
+        return pd.DataFrame(columns=columns)
+    handoffs = df[df["handoff_from"].notna() & df["handoff_to"].notna()]
+    if handoffs.empty:
+        return pd.DataFrame(columns=columns)
+    return handoffs[columns].sort_values("timestamp").reset_index(drop=True)
