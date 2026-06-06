@@ -8,13 +8,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
-from agent_telemetry_dashboard.collector import CollectorConfig, create_collector
+from agent_telemetry_dashboard.collector import CollectorAPI, CollectorConfig, create_collector
 
 
 class CollectorRequestHandler(BaseHTTPRequestHandler):
     """HTTP request handler that dispatches JSON requests to CollectorAPI."""
 
-    collector = create_collector()
+    collector: CollectorAPI | None = None
 
     def do_GET(self) -> None:
         """Handle GET collector requests."""
@@ -28,6 +28,8 @@ class CollectorRequestHandler(BaseHTTPRequestHandler):
         self._handle(payload)
 
     def _handle(self, payload: dict[str, Any]) -> None:
+        if self.collector is None:
+            self.collector = create_collector()
         response = self.collector.dispatch(self.command, self.path, payload)
         body = json.dumps(response.body).encode("utf-8")
         self.send_response(int(response.status_code))
