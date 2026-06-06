@@ -14,6 +14,14 @@ JsonObject = dict[str, Any]
 CollectorHandler = Callable[[JsonObject], JsonObject]
 
 
+def require_fields(payload: JsonObject, fields: tuple[str, ...]) -> None:
+    """Validate that required request fields are present and non-empty."""
+    missing = [field for field in fields if payload.get(field) in (None, "")]
+    if missing:
+        names = ", ".join(missing)
+        raise ValueError(f"Missing required field(s): {names}")
+
+
 @dataclass(frozen=True)
 class CollectorConfig:
     """Runtime configuration for the telemetry collector."""
@@ -72,6 +80,7 @@ class CollectorAPI:
 
     def ingest_trace(self, payload: JsonObject) -> JsonObject:
         """Persist one generic telemetry trace."""
+        require_fields(payload, ("trace_id", "run_id", "timestamp"))
         trace = StoredTrace(
             trace_id=str(payload["trace_id"]),
             dataset_id=str(payload.get("dataset_id", self.config.default_dataset_id)),
@@ -85,6 +94,7 @@ class CollectorAPI:
 
     def ingest_memory_trace(self, payload: JsonObject) -> JsonObject:
         """Persist one memory trace from the collector API."""
+        require_fields(payload, ("trace_id", "run_id", "timestamp"))
         memory_payload = dict(payload.get("payload", {}))
         trace_payload = {**payload, "trace_type": payload.get("trace_type", "memory_trace")}
         trace_payload["payload"] = memory_payload
@@ -92,6 +102,7 @@ class CollectorAPI:
 
     def ingest_tool_call(self, payload: JsonObject) -> JsonObject:
         """Persist one tool-call trace from the collector API."""
+        require_fields(payload, ("trace_id", "run_id", "timestamp", "tool_name"))
         trace_payload = {**payload, "trace_type": "tool_call"}
         trace_payload["payload"] = {
             "tool_name": payload["tool_name"],
@@ -103,6 +114,7 @@ class CollectorAPI:
 
     def ingest_run_lifecycle(self, payload: JsonObject) -> JsonObject:
         """Persist one run lifecycle trace from the collector API."""
+        require_fields(payload, ("trace_id", "run_id", "timestamp", "lifecycle_event"))
         trace_payload = {**payload, "trace_type": "run_lifecycle"}
         trace_payload["payload"] = {
             "lifecycle_event": payload["lifecycle_event"],
