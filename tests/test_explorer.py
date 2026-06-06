@@ -4,6 +4,7 @@ from agent_telemetry_dashboard.explorer import (
     RUN_LIST_COLUMNS,
     filter_runs_by_status,
     run_detail,
+    run_event_timeline,
     run_listing,
     search_runs,
 )
@@ -46,3 +47,12 @@ def test_run_detail_returns_selected_run() -> None:
 
     assert detail["run_id"] == "run-001"
     assert detail["agent_name"] == "MemoryScout"
+
+
+def test_run_event_timeline_is_ordered() -> None:
+    df = load_telemetry(DATA)
+    timeline = run_event_timeline(run_detail(df, "run-001"))
+
+    assert timeline["event_time"].is_monotonic_increasing
+    assert timeline["event_type"].iloc[0] == "run_started"
+    assert timeline["event_type"].iloc[-1] == "run_completed"

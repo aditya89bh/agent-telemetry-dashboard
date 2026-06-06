@@ -48,3 +48,42 @@ def run_detail(df: pd.DataFrame, run_id: str) -> pd.Series:
     if matches.empty:
         raise KeyError(f"Run not found: {run_id}")
     return matches.sort_values("timestamp").iloc[0]
+
+
+def run_event_timeline(run: pd.Series) -> pd.DataFrame:
+    """Build a deterministic event timeline from a run summary record."""
+    start = run["timestamp"]
+    latency = int(run["latency_ms"])
+    events = [
+        {
+            "event_time": start,
+            "event_type": "run_started",
+            "description": f"Started {run['task_name']}",
+        },
+        {
+            "event_time": start + pd.to_timedelta(max(latency // 4, 1), unit="ms"),
+            "event_type": "memory_activity",
+            "description": f"{run['memory_reads']} reads / {run['memory_writes']} writes",
+        },
+        {
+            "event_time": start + pd.to_timedelta(max(latency // 2, 2), unit="ms"),
+            "event_type": "tool_activity",
+            "description": f"{run['tool_calls']} tool calls",
+        },
+    ]
+    if int(run["failures"]) > 0 or int(run["retries"]) > 0:
+        events.append(
+            {
+                "event_time": start + pd.to_timedelta(max((latency * 3) // 4, 3), unit="ms"),
+                "event_type": "reliability_event",
+                "description": f"{run['failures']} failures / {run['retries']} retries",
+            }
+        )
+    events.append(
+        {
+            "event_time": start + pd.to_timedelta(latency, unit="ms"),
+            "event_type": "run_completed",
+            "description": f"Completed with status {run['status']}",
+        }
+    )
+    return pd.DataFrame(events).sort_values("event_time").reset_index(drop=True)

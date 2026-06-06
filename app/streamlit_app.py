@@ -8,7 +8,12 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from agent_telemetry_dashboard.explorer import filter_runs_by_status, run_detail, search_runs
+from agent_telemetry_dashboard.explorer import (
+    filter_runs_by_status,
+    run_detail,
+    run_event_timeline,
+    search_runs,
+)
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
@@ -255,6 +260,19 @@ def render_runs_tab(df: pd.DataFrame) -> None:
                 "notes": detail["notes"],
             }
         )
+    st.subheader("Event timeline")
+    events = run_event_timeline(detail)
+    st.plotly_chart(
+        px.scatter(
+            events,
+            x="event_time",
+            y="event_type",
+            color="event_type",
+            hover_data=["description"],
+        ),
+        use_container_width=True,
+    )
+    st.dataframe(events, use_container_width=True, hide_index=True)
 
 
 def render_data_tab(df: pd.DataFrame) -> None:
