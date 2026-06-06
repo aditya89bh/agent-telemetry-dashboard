@@ -19,3 +19,7 @@ Phase 7 adds a persistent telemetry platform foundation.
 ## Trace Repository Layer
 
 `TraceRepository` provides a higher-level API over any `TraceStore` backend. It initializes the backend, saves traces, lists traces by dataset, and lists traces for a specific run. Dashboard and SDK code should prefer this repository layer over directly calling backend methods.
+
+## Dataset Registry
+
+`DatasetRegistry` stores dataset metadata in a small JSON file. `DatasetEntry` tracks dataset ID, display name, description, and creation timestamp. This registry lets the dashboard distinguish multiple persisted trace collections without changing existing local-file workflows.
