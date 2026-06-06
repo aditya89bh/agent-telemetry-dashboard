@@ -135,3 +135,23 @@ def confidence_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
         .rename(columns={"timestamp": "period"})
     )
     return trend[columns]
+
+
+def drift_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
+    """Analyze average and maximum drift over time."""
+    columns = ["period", "avg_drift_score", "max_drift_score", "runs"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    trend = (
+        df.set_index("timestamp")
+        .resample(freq)
+        .agg(
+            avg_drift_score=("drift_score", "mean"),
+            max_drift_score=("drift_score", "max"),
+            runs=("run_id", "count"),
+        )
+        .dropna(subset=["avg_drift_score"])
+        .reset_index()
+        .rename(columns={"timestamp": "period"})
+    )
+    return trend[columns]

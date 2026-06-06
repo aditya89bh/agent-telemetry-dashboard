@@ -4,6 +4,7 @@ from agent_telemetry_dashboard.analytics import (
     agent_performance_scores,
     aggregate_metrics,
     confidence_trend,
+    drift_trend,
     failure_rates,
     latency_trend,
     success_rates,
@@ -79,4 +80,13 @@ def test_confidence_trend_returns_bounded_scores() -> None:
         "runs",
     }
     assert trend["avg_confidence"].between(0, 1).all()
+    assert trend["runs"].sum() == len(df)
+
+
+def test_drift_trend_returns_bounded_scores() -> None:
+    df = load_telemetry(DATA)
+    trend = drift_trend(df)
+
+    assert set(trend.columns) == {"period", "avg_drift_score", "max_drift_score", "runs"}
+    assert trend["avg_drift_score"].between(0, 1).all()
     assert trend["runs"].sum() == len(df)
