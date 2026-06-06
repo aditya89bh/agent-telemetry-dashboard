@@ -61,7 +61,7 @@ The sidebar lets you load a local telemetry file and filter by agent, status, ta
   - Status-aware confidence distribution
   - Drift score over time
   - Retry count, failures, and failed runs per task
-- Run listing and timeline views
+- Searchable run listing and timeline views
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
 - Tabbed dashboard layout for overview, reliability, timeline, and raw data views
 - Pytest coverage for loading, validation, filtering, generation, and metrics

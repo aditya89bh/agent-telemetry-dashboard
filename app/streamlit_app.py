@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from agent_telemetry_dashboard.explorer import run_listing
+from agent_telemetry_dashboard.explorer import search_runs
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
@@ -219,7 +219,8 @@ def render_timeline_tab(df: pd.DataFrame) -> None:
 def render_runs_tab(df: pd.DataFrame) -> None:
     st.subheader("Run listing")
     st.caption("Browse individual agent runs before opening deeper session exploration views.")
-    st.dataframe(run_listing(df), use_container_width=True, hide_index=True)
+    query = st.text_input("Search runs", placeholder="Search by run, agent, task, status, or notes")
+    st.dataframe(search_runs(df, query), use_container_width=True, hide_index=True)
 
 
 def render_data_tab(df: pd.DataFrame) -> None:
