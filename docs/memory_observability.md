@@ -73,3 +73,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Health Score
 
 `memory_health_score` combines useful retrieval rate, average relevance, average influence strength, conflict count, and drift into a normalized health score. It provides a quick signal for whether an agent's memory subsystem appears useful, stable, and low-risk.
+
+## Memory Observability Dashboard
+
+The Streamlit app includes a **Memory** tab that surfaces memory health, useful retrieval rate, average relevance, conflict count, memory operations by agent, and memory operations over time. Existing telemetry remains compatible; when explicit memory traces are not provided, the dashboard derives lightweight memory observability signals from existing `memory_reads`, `memory_writes`, confidence, status, agent, and task fields.

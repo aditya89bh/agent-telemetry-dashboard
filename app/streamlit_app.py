@@ -50,6 +50,7 @@ from agent_telemetry_dashboard.ingestion import (
 )
 from agent_telemetry_dashboard.ingestion_stats import ingestion_statistics
 from agent_telemetry_dashboard.loader import load_telemetry
+from agent_telemetry_dashboard.memory_observability import memory_health_score
 from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
     drift_over_time,
@@ -62,6 +63,11 @@ from agent_telemetry_dashboard.metrics import (
     retry_count_per_task,
     status_breakdown,
     tool_calls_per_run,
+)
+from agent_telemetry_dashboard.models import (
+    MemoryInfluenceTrace,
+    MemoryRetrievalTrace,
+    MemoryWriteTrace,
 )
 from agent_telemetry_dashboard.multi_agent import (
     agent_utilization_metrics,
@@ -603,6 +609,71 @@ def render_agents_tab(df: pd.DataFrame) -> None:
         )
 
 
+def render_memory_tab(df: pd.DataFrame) -> None:
+    st.subheader("Memory-aware observability")
+    st.caption("Inspect memory activity, health signals, and memory-related risk indicators.")
+    retrievals = [
+        MemoryRetrievalTrace(
+            trace_id=f"retrieval-{row.run_id}",
+            run_id=row.run_id,
+            memory_id=f"{row.agent_name}-retrieval",
+            timestamp=row.timestamp,
+            relevance_score=float(row.confidence),
+            content_summary=f"{row.memory_reads} memory read(s)",
+        )
+        for row in df.itertuples()
+        if row.memory_reads > 0
+    ]
+    writes = [
+        MemoryWriteTrace(
+            trace_id=f"write-{row.run_id}",
+            run_id=row.run_id,
+            memory_id=f"{row.agent_name}-write",
+            timestamp=row.timestamp,
+            operation="update",
+            importance_score=float(row.confidence),
+            new_summary=f"{row.memory_writes} memory write(s)",
+        )
+        for row in df.itertuples()
+        if row.memory_writes > 0
+    ]
+    influences = [
+        MemoryInfluenceTrace(
+            trace_id=f"influence-{row.run_id}",
+            run_id=row.run_id,
+            memory_id=f"{row.agent_name}-retrieval",
+            timestamp=row.timestamp,
+            influence_kind="decision",
+            target=row.task_name,
+            influence_strength=float(row.confidence),
+        )
+        for row in df.itertuples()
+        if row.memory_reads > 0 and row.status == "success"
+    ]
+    health = memory_health_score(retrievals, writes, influences)
+    h1, h2, h3, h4 = st.columns(4)
+    h1.metric("Memory health", f"{health['memory_health_score']:.2f}")
+    h2.metric("Useful retrievals", f"{health['useful_retrieval_rate']:.1%}")
+    h3.metric("Avg relevance", f"{health['avg_relevance_score']:.2f}")
+    h4.metric("Conflicts", health["conflict_count"])
+
+    st.subheader("Memory operations by agent")
+    st.plotly_chart(
+        px.bar(
+            memory_activity_by_agent(df),
+            x="agent_name",
+            y=["memory_reads", "memory_writes"],
+            barmode="group",
+        ),
+        use_container_width=True,
+    )
+    st.subheader("Memory operations over time")
+    st.plotly_chart(
+        px.line(memory_ops_over_time(df), x="date", y=["memory_reads", "memory_writes"]),
+        use_container_width=True,
+    )
+
+
 def main() -> None:
     st.title("📡 Agent Telemetry Dashboard")
     st.caption(
@@ -619,13 +690,14 @@ def main() -> None:
         st.warning("No telemetry records match the selected filters.")
         return
 
-    overview, reliability, runs, analytics, agents, upload, timeline, data = st.tabs(
+    overview, reliability, runs, analytics, agents, memory, upload, timeline, data = st.tabs(
         [
             "Overview",
             "Reliability",
             "Runs",
             "Analytics",
             "Agents",
+            "Memory",
             "Upload",
             "Run timeline",
             "Raw data",
@@ -641,6 +713,8 @@ def main() -> None:
         render_analytics_tab(filtered)
     with agents:
         render_agents_tab(filtered)
+    with memory:
+        render_memory_tab(filtered)
     with upload:
         render_upload_tab()
     with timeline:
