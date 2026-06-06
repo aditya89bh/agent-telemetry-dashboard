@@ -24,3 +24,21 @@ def memory_influence_dataframe(traces: list[MemoryInfluenceTrace]) -> pd.DataFra
         return pd.DataFrame(columns=columns)
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
     return df.sort_values("timestamp").reset_index(drop=True)
+
+
+def memory_influence_scores(traces: list[MemoryInfluenceTrace]) -> pd.DataFrame:
+    """Score memory influence by memory item across observed traces."""
+    df = memory_influence_dataframe(traces)
+    columns = ["memory_id", "influence_events", "avg_influence_strength", "max_influence_strength"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    return (
+        df.groupby("memory_id", as_index=False)
+        .agg(
+            influence_events=("trace_id", "count"),
+            avg_influence_strength=("influence_strength", "mean"),
+            max_influence_strength=("influence_strength", "max"),
+        )
+        .sort_values(["avg_influence_strength", "influence_events"], ascending=False)
+        .reset_index(drop=True)
+    )

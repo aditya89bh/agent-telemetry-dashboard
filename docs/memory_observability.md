@@ -37,3 +37,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Influence Tracking
 
 `MemoryInfluenceTrace` records how a retrieved or written memory affected downstream behavior. It captures the influenced target, evidence, influence kind (`decision`, `tool_selection`, `response`, `plan`, `safety`, or `other`), and an `influence_strength` score. `memory_influence_dataframe` converts these traces into sorted dataframes for dashboard views.
+
+## Memory Influence Scoring
+
+`memory_influence_scores` aggregates influence traces by memory item and reports event count, average influence strength, and maximum influence strength. This helps identify which memories most strongly shape agent behavior across runs.

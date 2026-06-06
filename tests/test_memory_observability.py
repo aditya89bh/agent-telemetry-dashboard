@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from agent_telemetry_dashboard.memory_observability import memory_influence_dataframe
+from agent_telemetry_dashboard.memory_observability import (
+    memory_influence_dataframe,
+    memory_influence_scores,
+)
 from agent_telemetry_dashboard.models import (
     MemoryInfluenceTrace,
     MemoryRetrievalTrace,
@@ -82,3 +85,38 @@ def test_memory_influence_tracking_dataframe_orders_traces() -> None:
 
     assert df["trace_id"].tolist() == ["influence-1", "influence-2"]
     assert df.loc[0, "influence_kind"] == "decision"
+
+
+def test_memory_influence_scores_rank_memory_items() -> None:
+    traces = [
+        MemoryInfluenceTrace(
+            trace_id="i1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:00:00",
+            influence_kind="decision",
+            influence_strength=0.8,
+        ),
+        MemoryInfluenceTrace(
+            trace_id="i2",
+            run_id="run-2",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:01:00",
+            influence_kind="response",
+            influence_strength=0.6,
+        ),
+        MemoryInfluenceTrace(
+            trace_id="i3",
+            run_id="run-3",
+            memory_id="mem-2",
+            timestamp="2026-01-01T00:02:00",
+            influence_kind="plan",
+            influence_strength=0.2,
+        ),
+    ]
+
+    scores = memory_influence_scores(traces)
+
+    assert scores.loc[0, "memory_id"] == "mem-1"
+    assert scores.loc[0, "influence_events"] == 2
+    assert scores.loc[0, "avg_influence_strength"] == 0.7
