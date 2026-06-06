@@ -40,6 +40,7 @@ class CollectorAPI:
         self.add_route("GET", "/health", self.health)
         self.add_route("POST", "/v1/traces", self.ingest_trace)
         self.add_route("POST", "/v1/memory-traces", self.ingest_memory_trace)
+        self.add_route("POST", "/v1/tool-calls", self.ingest_tool_call)
 
     def add_route(self, method: str, path: str, handler: CollectorHandler) -> None:
         """Register a JSON handler for one HTTP method and path."""
@@ -86,6 +87,17 @@ class CollectorAPI:
         memory_payload = dict(payload.get("payload", {}))
         trace_payload = {**payload, "trace_type": payload.get("trace_type", "memory_trace")}
         trace_payload["payload"] = memory_payload
+        return self.ingest_trace(trace_payload)
+
+    def ingest_tool_call(self, payload: JsonObject) -> JsonObject:
+        """Persist one tool-call trace from the collector API."""
+        trace_payload = {**payload, "trace_type": "tool_call"}
+        trace_payload["payload"] = {
+            "tool_name": payload["tool_name"],
+            "status": payload.get("status", "success"),
+            "latency_ms": payload.get("latency_ms", 0),
+            "metadata": payload.get("metadata", {}),
+        }
         return self.ingest_trace(trace_payload)
 
 
