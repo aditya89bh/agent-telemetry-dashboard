@@ -45,3 +45,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Effectiveness Metrics
 
 `memory_effectiveness_metrics` combines retrieval, write, and influence traces into high-level effectiveness indicators: retrieval count, write count, influence count, average relevance, average influence strength, and useful retrieval rate. The useful retrieval rate measures how many retrieved memory IDs later appear in influence traces.
+
+## Memory Conflict Detection
+
+`detect_memory_conflicts` scans memory write traces for memory IDs that receive multiple distinct summaries. It reports write count, distinct summary count, and a conflict score so teams can identify unstable or contradictory memory state.

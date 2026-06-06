@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from agent_telemetry_dashboard.memory_observability import (
+    detect_memory_conflicts,
     memory_effectiveness_metrics,
     memory_influence_dataframe,
     memory_influence_scores,
@@ -164,3 +165,28 @@ def test_memory_effectiveness_metrics_connect_retrievals_to_influences() -> None
     assert metrics["writes"] == 1
     assert metrics["avg_relevance_score"] == 0.7
     assert metrics["useful_retrieval_rate"] == 0.5
+
+
+def test_detect_memory_conflicts_flags_divergent_summaries() -> None:
+    writes = [
+        MemoryWriteTrace(
+            trace_id="w1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:00:00",
+            new_summary="User prefers short replies.",
+        ),
+        MemoryWriteTrace(
+            trace_id="w2",
+            run_id="run-2",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:01:00",
+            new_summary="User prefers detailed replies.",
+        ),
+    ]
+
+    conflicts = detect_memory_conflicts(writes)
+
+    assert conflicts.loc[0, "memory_id"] == "mem-1"
+    assert conflicts.loc[0, "distinct_summaries"] == 2
+    assert conflicts.loc[0, "conflict_score"] == 1.0

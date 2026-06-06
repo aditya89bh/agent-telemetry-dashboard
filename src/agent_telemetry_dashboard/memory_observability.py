@@ -82,3 +82,25 @@ def memory_effectiveness_metrics(
         "avg_influence_strength": avg_influence,
         "useful_retrieval_rate": useful_retrieval_rate,
     }
+
+
+def detect_memory_conflicts(writes: list[MemoryWriteTrace]) -> pd.DataFrame:
+    """Detect memory IDs that receive conflicting write summaries."""
+    columns = ["memory_id", "write_events", "distinct_summaries", "conflict_score"]
+    if not writes:
+        return pd.DataFrame(columns=columns)
+    df = pd.DataFrame([trace.model_dump() for trace in writes])
+    df["summary_key"] = df["new_summary"].str.strip().str.lower()
+    grouped = (
+        df[df["summary_key"] != ""]
+        .groupby("memory_id", as_index=False)
+        .agg(
+            write_events=("trace_id", "count"),
+            distinct_summaries=("summary_key", "nunique"),
+        )
+    )
+    conflicts = grouped[grouped["distinct_summaries"] > 1].copy()
+    if conflicts.empty:
+        return pd.DataFrame(columns=columns)
+    conflicts["conflict_score"] = conflicts["distinct_summaries"] / conflicts["write_events"]
+    return conflicts.sort_values("conflict_score", ascending=False).reset_index(drop=True)
