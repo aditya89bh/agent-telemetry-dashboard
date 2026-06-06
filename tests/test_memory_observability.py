@@ -8,6 +8,7 @@ from agent_telemetry_dashboard.memory_observability import (
     memory_decision_trace_dataframe,
     memory_drift_metrics,
     memory_effectiveness_metrics,
+    memory_health_score,
     memory_influence_dataframe,
     memory_influence_scores,
     memory_lifecycle_events,
@@ -329,3 +330,40 @@ def test_memory_audit_timeline_includes_decision_events() -> None:
     assert timeline.loc[0, "event_type"] == "decision"
     assert timeline.loc[0, "memory_id"] == "mem-1"
     assert timeline.loc[0, "score"] == 0.1
+
+
+def test_memory_health_score_combines_quality_and_risk_signals() -> None:
+    retrievals = [
+        MemoryRetrievalTrace(
+            trace_id="r-health",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:00:00",
+            relevance_score=0.9,
+        )
+    ]
+    writes = [
+        MemoryWriteTrace(
+            trace_id="w-health",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:01:00",
+            new_summary="Stable preference",
+            importance_score=0.8,
+        )
+    ]
+    influences = [
+        MemoryInfluenceTrace(
+            trace_id="i-health",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:02:00",
+            influence_strength=0.8,
+        )
+    ]
+
+    health = memory_health_score(retrievals, writes, influences)
+
+    assert health["memory_health_score"] > 0.8
+    assert health["conflict_count"] == 0
+    assert health["avg_drift_score"] == 0.0

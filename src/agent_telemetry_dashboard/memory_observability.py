@@ -278,3 +278,30 @@ def memory_audit_timeline(
         return replay
     combined["timestamp"] = pd.to_datetime(combined["timestamp"], utc=False)
     return combined.sort_values(["timestamp", "event_type"]).reset_index(drop=True)
+
+
+def memory_health_score(
+    retrievals: list[MemoryRetrievalTrace],
+    writes: list[MemoryWriteTrace],
+    influences: list[MemoryInfluenceTrace],
+) -> dict[str, float | int]:
+    """Compute a compact memory health score from quality and risk signals."""
+    effectiveness = memory_effectiveness_metrics(retrievals, writes, influences)
+    conflicts = detect_memory_conflicts(writes)
+    drift = memory_drift_metrics(writes)
+    conflict_penalty = min(1.0, len(conflicts) / max(1, len({write.memory_id for write in writes})))
+    avg_drift = float(drift["drift_score"].mean()) if not drift.empty else 0.0
+    usefulness = float(effectiveness["useful_retrieval_rate"])
+    relevance = float(effectiveness["avg_relevance_score"])
+    influence = float(effectiveness["avg_influence_strength"])
+    raw_score = (0.35 * usefulness) + (0.25 * relevance) + (0.25 * influence)
+    risk_penalty = (0.1 * conflict_penalty) + (0.05 * avg_drift)
+    score = max(0.0, min(1.0, raw_score + 0.15 - risk_penalty))
+    return {
+        "memory_health_score": score,
+        "useful_retrieval_rate": usefulness,
+        "avg_relevance_score": relevance,
+        "avg_influence_strength": influence,
+        "conflict_count": len(conflicts),
+        "avg_drift_score": avg_drift,
+    }

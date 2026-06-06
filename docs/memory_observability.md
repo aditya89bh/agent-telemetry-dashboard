@@ -69,3 +69,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Audit Timeline
 
 `memory_audit_timeline` combines retrieval, write, influence, and decision traces into a single chronological audit table. This gives developers a unified sequence for reviewing how memory state affected an agent run or dataset.
+
+## Memory Health Score
+
+`memory_health_score` combines useful retrieval rate, average relevance, average influence strength, conflict count, and drift into a normalized health score. It provides a quick signal for whether an agent's memory subsystem appears useful, stable, and low-risk.
