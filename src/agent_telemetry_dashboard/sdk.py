@@ -6,6 +6,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from agent_telemetry_dashboard.models import (
+    MemoryDecisionTrace,
+    MemoryInfluenceTrace,
+    MemoryRetrievalTrace,
+    MemoryWriteTrace,
+)
 from agent_telemetry_dashboard.trace_store import StoredTrace, TraceRepository
 
 
@@ -62,3 +68,20 @@ class TelemetryClient:
             run_id=run_id,
             payload={"event_name": event_name, "attributes": attributes or {}},
         )
+
+    def emit_memory_trace(
+        self,
+        trace: MemoryRetrievalTrace | MemoryWriteTrace | MemoryInfluenceTrace | MemoryDecisionTrace,
+    ) -> StoredTrace:
+        """Emit a memory-aware trace model through the SDK."""
+        trace_type = (
+            trace.__class__.__name__.replace("Memory", "memory_").replace("Trace", "").lower()
+        )
+        stored = self._trace(
+            trace_type=trace_type,
+            run_id=trace.run_id,
+            payload=trace.model_dump(mode="json"),
+            trace_id=trace.trace_id,
+            timestamp=trace.timestamp.isoformat(),
+        )
+        return self.repository.save(stored)

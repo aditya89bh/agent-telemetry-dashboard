@@ -11,3 +11,7 @@ The SDK is intentionally small and local-first. It does not require a server, AP
 ## Telemetry Event Emitter
 
 `TelemetryClient.emit_event(run_id, event_name, attributes)` emits named generic telemetry events with optional structured attributes. Events are stored with trace type `event`.
+
+## Memory Trace Emitter
+
+`TelemetryClient.emit_memory_trace(trace)` accepts memory retrieval, write, influence, and decision trace models and persists them as normalized trace records. The emitter preserves the original trace ID and timestamp.
