@@ -19,3 +19,7 @@ The SDK is intentionally small and local-first. It does not require a server, AP
 ## Tool Call Emitter
 
 `TelemetryClient.emit_tool_call(run_id, tool_name, status, latency_ms, metadata)` records tool usage with status, latency, and optional metadata. Tool traces use trace type `tool_call`.
+
+## Run Lifecycle Emitter
+
+`TelemetryClient.emit_run_start(...)` and `TelemetryClient.emit_run_end(...)` record run lifecycle events with trace type `run_lifecycle`. Start events include agent/task names; end events include status and latency.

@@ -105,3 +105,41 @@ class TelemetryClient:
                 "metadata": metadata or {},
             },
         )
+
+    def emit_run_start(
+        self,
+        run_id: str,
+        agent_name: str,
+        task_name: str,
+        metadata: dict[str, object] | None = None,
+    ) -> StoredTrace:
+        """Emit a run start lifecycle trace."""
+        return self.emit(
+            trace_type="run_lifecycle",
+            run_id=run_id,
+            payload={
+                "lifecycle_event": "start",
+                "agent_name": agent_name,
+                "task_name": task_name,
+                "metadata": metadata or {},
+            },
+        )
+
+    def emit_run_end(
+        self,
+        run_id: str,
+        status: str,
+        latency_ms: int = 0,
+        metadata: dict[str, object] | None = None,
+    ) -> StoredTrace:
+        """Emit a run end lifecycle trace."""
+        return self.emit(
+            trace_type="run_lifecycle",
+            run_id=run_id,
+            payload={
+                "lifecycle_event": "end",
+                "status": status,
+                "latency_ms": latency_ms,
+                "metadata": metadata or {},
+            },
+        )
