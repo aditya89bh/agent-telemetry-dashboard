@@ -29,6 +29,7 @@ Agent telemetry makes behavior observable:
 - Pydantic models for strict typed telemetry validation
 - JSON and CSV telemetry loading utilities
 - Schema versioning support for raw JSON, versioned JSON envelopes, and CSV files
+- Deterministic sample telemetry generator utility
 - Deterministic Pandas metrics
 - Plotly charts for:
   - Tool calls per run
@@ -63,6 +64,12 @@ Run linting:
 
 ```bash
 ruff check .
+```
+
+Regenerate local sample telemetry:
+
+```bash
+generate-agent-telemetry --count 42
 ```
 
 For Streamlit Community Cloud or simple deployments:

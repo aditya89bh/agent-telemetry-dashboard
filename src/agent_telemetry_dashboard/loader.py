@@ -75,7 +75,9 @@ def load_telemetry(path: str | Path) -> pd.DataFrame:
         payload = json.loads(path.read_text(encoding="utf-8"))
         raw_records = _records_from_json_payload(payload)
     elif path.suffix.lower() == ".csv":
-        raw_records = pd.read_csv(path).to_dict(orient="records")
+        raw_records = pd.read_csv(path, dtype={"schema_version": "string"}).to_dict(
+            orient="records"
+        )
     else:
         raise ValueError(f"Unsupported telemetry format: {path.suffix}")
 

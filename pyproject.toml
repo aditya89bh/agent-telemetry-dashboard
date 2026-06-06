@@ -17,6 +17,9 @@ dependencies = [
     "streamlit>=1.38",
 ]
 
+[project.scripts]
+generate-agent-telemetry = "agent_telemetry_dashboard.generator:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
