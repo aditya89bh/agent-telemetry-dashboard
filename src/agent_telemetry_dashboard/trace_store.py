@@ -77,6 +77,21 @@ class SQLiteTraceStore:
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_traces_dataset ON traces(dataset_id)"
             )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_traces_run ON traces(run_id)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_traces_type ON traces(trace_type)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_traces_timestamp ON traces(timestamp)"
+            )
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_traces_dataset_type_run
+                ON traces(dataset_id, trace_type, run_id)
+                """
+            )
 
     def append_trace(self, trace: StoredTrace) -> None:
         self.initialize()
