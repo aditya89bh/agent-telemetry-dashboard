@@ -212,3 +212,19 @@ def _anomaly_row(row: object, rule: str, severity: str, value: float | int) -> d
         "severity": severity,
         "value": value,
     }
+
+
+def tool_reliability_metrics(df: pd.DataFrame, by: str = "agent_name") -> pd.DataFrame:
+    """Estimate tool reliability from run-level tool calls and failures."""
+    columns = [by, "tool_calls", "failures", "retries", "tool_success_rate"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    grouped = df.groupby(by, as_index=False).agg(
+        tool_calls=("tool_calls", "sum"),
+        failures=("failures", "sum"),
+        retries=("retries", "sum"),
+    )
+    grouped["tool_success_rate"] = (
+        (grouped["tool_calls"] - grouped["failures"]).clip(lower=0) / grouped["tool_calls"]
+    ).fillna(0.0)
+    return grouped.sort_values("tool_success_rate", ascending=False).reset_index(drop=True)

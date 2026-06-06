@@ -10,6 +10,7 @@ from agent_telemetry_dashboard.analytics import (
     latency_trend,
     memory_usage_trend,
     success_rates,
+    tool_reliability_metrics,
 )
 from agent_telemetry_dashboard.loader import load_telemetry
 
@@ -117,3 +118,17 @@ def test_detect_anomalies_flags_failed_runs() -> None:
     }
     assert "failed_run" in set(anomalies["rule"])
     assert set(anomalies["severity"]).issubset({"medium", "high"})
+
+
+def test_tool_reliability_metrics_are_bounded() -> None:
+    df = load_telemetry(DATA)
+    reliability = tool_reliability_metrics(df)
+
+    assert set(reliability.columns) == {
+        "agent_name",
+        "tool_calls",
+        "failures",
+        "retries",
+        "tool_success_rate",
+    }
+    assert reliability["tool_success_rate"].between(0, 1).all()
