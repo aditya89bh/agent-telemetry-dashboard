@@ -1,5 +1,7 @@
 # Architecture
 
+For the deployable collector, SDK HTTP transport, batching, retries, and deployment assets added in Phase 8, see [Production Ingestion Layer](production_ingestion.md).
+
 Agent Telemetry Dashboard is intentionally small and easy to inspect.
 
 ```text
