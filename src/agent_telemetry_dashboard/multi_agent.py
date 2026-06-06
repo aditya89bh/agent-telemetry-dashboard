@@ -1,0 +1,44 @@
+"""Multi-agent observability helpers."""
+
+from __future__ import annotations
+
+import pandas as pd
+
+
+def _column_or_default(df: pd.DataFrame, column: str, default: object) -> pd.Series:
+    if column in df.columns:
+        return df[column]
+    return pd.Series([default] * len(df), index=df.index)
+
+
+def agent_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
+    """Return parent-child run relationships with backward-compatible defaults."""
+    columns = ["run_id", "parent_run_id", "agent_name", "task_name", "depth"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+
+    hierarchy = pd.DataFrame(
+        {
+            "run_id": df["run_id"],
+            "parent_run_id": _column_or_default(df, "parent_run_id", None),
+            "agent_name": df["agent_name"],
+            "task_name": df["task_name"],
+        }
+    )
+    parent_lookup = dict(zip(hierarchy["run_id"], hierarchy["parent_run_id"], strict=False))
+    hierarchy["depth"] = [
+        _hierarchy_depth(run_id=row.run_id, parent_lookup=parent_lookup)
+        for row in hierarchy.itertuples()
+    ]
+    return hierarchy[columns]
+
+
+def _hierarchy_depth(run_id: str, parent_lookup: dict[str, object]) -> int:
+    depth = 0
+    seen = {run_id}
+    parent = parent_lookup.get(run_id)
+    while parent and parent in parent_lookup and parent not in seen:
+        seen.add(parent)
+        depth += 1
+        parent = parent_lookup.get(parent)
+    return depth

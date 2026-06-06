@@ -70,6 +70,7 @@ See [`docs/telemetry_analytics.md`](docs/telemetry_analytics.md) for the analyti
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
 - Tabbed dashboard layout for overview, reliability, runs, analytics, timeline, and raw data views
 - Pytest coverage for loading, validation, filtering, generation, and metrics
+- Parent-child hierarchy helpers for multi-agent run relationships
 - Analytics export downloads for JSON summaries and run quality CSV
 - GitHub Actions CI
 
