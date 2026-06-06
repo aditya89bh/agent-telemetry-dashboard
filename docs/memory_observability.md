@@ -81,3 +81,7 @@ The Streamlit app includes a **Memory** tab that surfaces memory health, useful 
 ## Memory Analytics Integration
 
 `memory_analytics_summary` adds memory-active run count, memory-active rate, average memory operations per run, and memory failure rate to the analytics layer. The Analytics tab now displays these memory-aware metrics next to existing aggregate telemetry analytics.
+
+## Memory Report Export
+
+`memory_report_json` exports a memory observability report with memory analytics and per-run memory operation counts. The Memory tab exposes this as a JSON download for audits, offline review, and sharing with agent developers.

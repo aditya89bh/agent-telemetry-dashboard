@@ -13,6 +13,7 @@ from agent_telemetry_dashboard.analytics import (
     multi_agent_analytics_summary,
     run_quality_scores,
 )
+from agent_telemetry_dashboard.memory_observability import memory_analytics_summary
 
 
 def analytics_export_payload(df: pd.DataFrame) -> dict[str, object]:
@@ -34,3 +35,17 @@ def analytics_export_json(df: pd.DataFrame) -> str:
 def analytics_quality_csv(df: pd.DataFrame) -> str:
     """Export run quality scores as CSV text."""
     return run_quality_scores(df).to_csv(index=False)
+
+
+def memory_report_payload(df: pd.DataFrame) -> dict[str, object]:
+    """Build a JSON-serializable memory observability report."""
+    memory_ops = df[["run_id", "agent_name", "task_name", "memory_reads", "memory_writes"]]
+    return {
+        "memory_analytics": memory_analytics_summary(df),
+        "memory_operations": memory_ops.to_dict(orient="records"),
+    }
+
+
+def memory_report_json(df: pd.DataFrame) -> str:
+    """Export memory observability report as pretty JSON."""
+    return json.dumps(memory_report_payload(df), indent=2, default=str)

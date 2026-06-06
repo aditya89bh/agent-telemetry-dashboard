@@ -36,7 +36,11 @@ from agent_telemetry_dashboard.explorer import (
     search_runs,
     tool_call_timeline,
 )
-from agent_telemetry_dashboard.export import analytics_export_json, analytics_quality_csv
+from agent_telemetry_dashboard.export import (
+    analytics_export_json,
+    analytics_quality_csv,
+    memory_report_json,
+)
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.import_history import (
     append_import_history,
@@ -621,6 +625,12 @@ def render_agents_tab(df: pd.DataFrame) -> None:
 def render_memory_tab(df: pd.DataFrame) -> None:
     st.subheader("Memory-aware observability")
     st.caption("Inspect memory activity, health signals, and memory-related risk indicators.")
+    st.download_button(
+        "Download memory report JSON",
+        memory_report_json(df),
+        file_name="memory_observability_report.json",
+        mime="application/json",
+    )
     retrievals = [
         MemoryRetrievalTrace(
             trace_id=f"retrieval-{row.run_id}",
