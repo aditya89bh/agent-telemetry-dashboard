@@ -12,6 +12,7 @@ SchemaVersion = Literal["1.0"]
 AgentRole = Literal["planner", "executor", "critic", "memory", "tool", "observer", "other"]
 CommunicationType = Literal["message", "handoff", "memory_share", "tool_result", "status_update"]
 MemorySource = Literal["episodic", "semantic", "procedural", "working", "external", "other"]
+MemoryWriteOperation = Literal["create", "update", "delete", "merge", "expire"]
 
 
 class AgentRegistryEntry(BaseModel):
@@ -124,3 +125,19 @@ class MemoryRetrievalTrace(BaseModel):
     relevance_score: float = Field(ge=0.0, le=1.0)
     rank: int = Field(default=1, ge=1)
     content_summary: str = Field(default="", max_length=500)
+
+
+class MemoryWriteTrace(BaseModel):
+    """Trace for a memory write or lifecycle mutation during an agent run."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    trace_id: str = Field(min_length=1, max_length=100)
+    run_id: str = Field(min_length=1, max_length=80)
+    memory_id: str = Field(min_length=1, max_length=120)
+    timestamp: datetime
+    operation: MemoryWriteOperation = "create"
+    source: MemorySource = "other"
+    importance_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    previous_summary: str = Field(default="", max_length=500)
+    new_summary: str = Field(default="", max_length=500)
