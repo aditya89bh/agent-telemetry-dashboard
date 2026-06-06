@@ -129,3 +129,13 @@ def tool_call_timeline(run: pd.Series) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+def confidence_evolution(df: pd.DataFrame, run: pd.Series) -> pd.DataFrame:
+    """Return confidence trend for the selected run's agent."""
+    if df.empty:
+        return pd.DataFrame(columns=["timestamp", "run_id", "agent_name", "confidence"])
+    agent_runs = df[df["agent_name"] == run["agent_name"]]
+    return agent_runs[["timestamp", "run_id", "agent_name", "confidence"]].sort_values(
+        "timestamp"
+    )

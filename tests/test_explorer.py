@@ -2,6 +2,7 @@ from pathlib import Path
 
 from agent_telemetry_dashboard.explorer import (
     RUN_LIST_COLUMNS,
+    confidence_evolution,
     filter_runs_by_status,
     memory_event_timeline,
     run_detail,
@@ -76,3 +77,12 @@ def test_tool_call_timeline_has_one_row_per_tool_call() -> None:
 
     assert len(timeline) == detail["tool_calls"]
     assert timeline["event_time"].is_monotonic_increasing
+
+
+def test_confidence_evolution_scopes_to_selected_agent() -> None:
+    df = load_telemetry(DATA)
+    detail = run_detail(df, "run-001")
+    evolution = confidence_evolution(df, detail)
+
+    assert set(evolution["agent_name"]) == {detail["agent_name"]}
+    assert evolution["timestamp"].is_monotonic_increasing

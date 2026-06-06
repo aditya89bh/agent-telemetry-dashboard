@@ -9,6 +9,7 @@ import plotly.express as px
 import streamlit as st
 
 from agent_telemetry_dashboard.explorer import (
+    confidence_evolution,
     filter_runs_by_status,
     memory_event_timeline,
     run_detail,
@@ -298,6 +299,19 @@ def render_runs_tab(df: pd.DataFrame) -> None:
             y="tool_call_index",
             color="tool_call_index",
             hover_data=["description"],
+        ),
+        use_container_width=True,
+    )
+
+    st.subheader("Confidence evolution")
+    st.plotly_chart(
+        px.line(
+            confidence_evolution(df, detail),
+            x="timestamp",
+            y="confidence",
+            color="agent_name",
+            markers=True,
+            hover_data=["run_id"],
         ),
         use_container_width=True,
     )
