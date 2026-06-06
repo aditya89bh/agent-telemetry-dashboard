@@ -1,0 +1,16 @@
+[Unit]
+Description=Agent Telemetry Collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=/etc/agent-telemetry/collector.env
+WorkingDirectory=/opt/agent-telemetry-dashboard
+ExecStart=/opt/agent-telemetry-dashboard/.venv/bin/python -m agent_telemetry_dashboard.collector_server
+Restart=on-failure
+RestartSec=5
+User=agent-telemetry
+Group=agent-telemetry
+
+[Install]
+WantedBy=multi-user.target
