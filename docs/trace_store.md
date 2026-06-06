@@ -27,3 +27,7 @@ Phase 7 adds a persistent telemetry platform foundation.
 ## Dataset Selection
 
 When `data/datasets.json` contains registered datasets, the dashboard sidebar shows a **Saved dataset** selector with dataset names and IDs. This introduces dataset awareness for trace-store workflows while preserving the existing local telemetry file input.
+
+## Trace Querying Interface
+
+`TraceQuery` can filter by dataset ID, trace type, run ID, and limit. `query_traces_dataframe` and `traces_to_dataframe` expose query results as Pandas dataframes so future dashboard views can inspect stored traces without backend-specific SQL.

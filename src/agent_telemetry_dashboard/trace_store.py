@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
+import pandas as pd
+
 
 @dataclass(frozen=True)
 class StoredTrace:
@@ -152,3 +154,31 @@ class TraceRepository:
         return self.store.query_traces(
             TraceQuery(dataset_id=dataset_id, run_id=run_id, limit=limit)
         )
+
+
+def traces_to_dataframe(traces: list[StoredTrace]) -> pd.DataFrame:
+    """Convert stored traces into a dataframe for query views."""
+    columns = ["trace_id", "dataset_id", "trace_type", "run_id", "timestamp", "payload"]
+    df = pd.DataFrame(
+        [
+            {
+                "trace_id": trace.trace_id,
+                "dataset_id": trace.dataset_id,
+                "trace_type": trace.trace_type,
+                "run_id": trace.run_id,
+                "timestamp": trace.timestamp,
+                "payload": trace.payload,
+            }
+            for trace in traces
+        ],
+        columns=columns,
+    )
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
+    return df.sort_values("timestamp").reset_index(drop=True)
+
+
+def query_traces_dataframe(repository: TraceRepository, query: TraceQuery) -> pd.DataFrame:
+    """Run a trace query and return dataframe output for dashboard use."""
+    return traces_to_dataframe(repository.store.query_traces(query))
