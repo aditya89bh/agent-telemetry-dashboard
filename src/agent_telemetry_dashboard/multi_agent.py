@@ -134,3 +134,27 @@ def shared_memory_tracking(df: pd.DataFrame) -> pd.DataFrame:
                 }
             )
     return pd.DataFrame(rows, columns=columns)
+
+
+def agent_utilization_metrics(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute per-agent utilization from run counts, latency, tools, and memory ops."""
+    columns = [
+        "agent_name",
+        "runs",
+        "total_latency_ms",
+        "avg_latency_ms",
+        "tool_calls",
+        "memory_ops",
+    ]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    grouped = df.groupby("agent_name", as_index=False).agg(
+        runs=("run_id", "count"),
+        total_latency_ms=("latency_ms", "sum"),
+        avg_latency_ms=("latency_ms", "mean"),
+        tool_calls=("tool_calls", "sum"),
+        memory_reads=("memory_reads", "sum"),
+        memory_writes=("memory_writes", "sum"),
+    )
+    grouped["memory_ops"] = grouped["memory_reads"] + grouped["memory_writes"]
+    return grouped[columns].sort_values("runs", ascending=False).reset_index(drop=True)

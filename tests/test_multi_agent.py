@@ -10,6 +10,7 @@ from agent_telemetry_dashboard.models import (
 from agent_telemetry_dashboard.multi_agent import (
     agent_hierarchy,
     agent_relationship_graph,
+    agent_utilization_metrics,
     communication_events_to_dataframe,
     handoff_tracking,
     shared_memory_tracking,
@@ -159,3 +160,31 @@ def test_shared_memory_tracking_explodes_memory_keys() -> None:
 
     assert len(shared) == 2
     assert set(shared["shared_memory_key"]) == {"customer_context", "tool_trace"}
+
+
+def test_agent_utilization_metrics_sum_usage() -> None:
+    df = pd.DataFrame(
+        [
+            {
+                "run_id": "run-004",
+                "agent_name": "Worker",
+                "latency_ms": 100,
+                "tool_calls": 2,
+                "memory_reads": 3,
+                "memory_writes": 1,
+            },
+            {
+                "run_id": "run-005",
+                "agent_name": "Worker",
+                "latency_ms": 200,
+                "tool_calls": 1,
+                "memory_reads": 1,
+                "memory_writes": 1,
+            },
+        ]
+    )
+
+    metrics = agent_utilization_metrics(df)
+
+    assert metrics.loc[0, "runs"] == 2
+    assert metrics.loc[0, "memory_ops"] == 6
