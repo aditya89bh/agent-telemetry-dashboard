@@ -24,6 +24,9 @@ class TelemetryTransport(Protocol):
     def send(self, trace: StoredTrace) -> None:
         """Send one stored trace."""
 
+    def send_batch(self, traces: list[StoredTrace]) -> None:
+        """Send multiple stored traces."""
+
 
 class RepositoryTransport:
     """Telemetry transport that writes directly to a repository."""
@@ -35,6 +38,11 @@ class RepositoryTransport:
         """Persist one trace through the repository."""
         self.repository.save(trace)
 
+    def send_batch(self, traces: list[StoredTrace]) -> None:
+        """Persist multiple traces through the repository."""
+        for trace in traces:
+            self.send(trace)
+
 
 @dataclass(frozen=True)
 class HTTPTransport:
@@ -45,8 +53,16 @@ class HTTPTransport:
 
     def send(self, trace: StoredTrace) -> None:
         """POST one trace to the collector API."""
-        url = f"{self.base_url.rstrip('/')}/v1/traces"
-        payload = json.dumps(trace_payload(trace)).encode("utf-8")
+        self._post("/v1/traces", trace_payload(trace))
+
+    def send_batch(self, traces: list[StoredTrace]) -> None:
+        """POST multiple traces to the collector API."""
+        self._post("/v1/traces/batch", {"traces": [trace_payload(trace) for trace in traces]})
+
+    def _post(self, path: str, body: dict[str, object]) -> None:
+        """POST a JSON body to the collector API."""
+        url = f"{self.base_url.rstrip('/')}{path}"
+        payload = json.dumps(body).encode("utf-8")
         http_request = request.Request(
             url,
             data=payload,
@@ -76,6 +92,7 @@ class TelemetrySDKConfig:
 
     dataset_id: str = "default"
     service_name: str = "agent-app"
+    batch_size: int = 1
 
 
 class TelemetryClient:
@@ -90,6 +107,7 @@ class TelemetryClient:
         self.repository = repository
         self.config = config or TelemetrySDKConfig()
         self.transport = transport or RepositoryTransport(repository)
+        self._buffer: list[StoredTrace] = []
 
     def _trace(
         self,
@@ -111,7 +129,7 @@ class TelemetryClient:
     def emit(self, trace_type: str, run_id: str, payload: dict[str, object]) -> StoredTrace:
         """Emit a generic telemetry trace."""
         trace = self._trace(trace_type=trace_type, run_id=run_id, payload=payload)
-        self.transport.send(trace)
+        self._send_or_buffer(trace)
         return trace
 
     def emit_event(
@@ -142,8 +160,25 @@ class TelemetryClient:
             trace_id=trace.trace_id,
             timestamp=trace.timestamp.isoformat(),
         )
-        self.transport.send(stored)
+        self._send_or_buffer(stored)
         return stored
+
+    def _send_or_buffer(self, trace: StoredTrace) -> None:
+        """Send immediately or buffer until the configured batch size is reached."""
+        if self.config.batch_size <= 1:
+            self.transport.send(trace)
+            return
+        self._buffer.append(trace)
+        if len(self._buffer) >= self.config.batch_size:
+            self.flush()
+
+    def flush(self) -> None:
+        """Flush buffered traces through the configured transport."""
+        if not self._buffer:
+            return
+        traces = list(self._buffer)
+        self._buffer.clear()
+        self.transport.send_batch(traces)
 
     def emit_tool_call(
         self,
