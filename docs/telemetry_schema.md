@@ -4,6 +4,7 @@ The dashboard expects one row per agent run or task-level run summary.
 
 | Field | Type | Description |
 | --- | --- | --- |
+| `schema_version` | string | Telemetry schema version. Defaults to `1.0` when omitted. |
 | `run_id` | string | Stable identifier for the run. |
 | `agent_name` | string | Name of the agent that performed the task. |
 | `task_name` | string | Human-readable task or workflow name. |
@@ -34,6 +35,11 @@ Validation is implemented in `src/agent_telemetry_dashboard/models.py` with Pyda
 ## Supported formats
 
 - JSON: a list of telemetry objects
+- JSON envelope: `{ "schema_version": "1.0", "records": [...] }`
 - CSV: one telemetry record per row
 
 Both formats are included under `data/`.
+
+## Schema versions
+
+The current supported schema version is `1.0`. JSON envelope files can declare the version once at the top level, and the loader applies it to each record. Plain JSON lists and CSV files default to `1.0`.

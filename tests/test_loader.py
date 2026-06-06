@@ -13,6 +13,7 @@ def test_load_json_telemetry() -> None:
     df = load_telemetry(DATA_DIR / "sample_telemetry.json")
 
     assert len(df) == 42
+    assert df["schema_version"].unique().tolist() == ["1.0"]
     assert pd.api.types.is_datetime64_any_dtype(df["timestamp"])
     assert df["run_id"].iloc[0] == "run-001"
     assert set(df["status"].unique()) == {"success", "warning", "failed"}
@@ -31,6 +32,68 @@ def test_rejects_invalid_suffix(tmp_path: Path) -> None:
     path.write_text("[]")
 
     with pytest.raises(ValueError, match="Unsupported telemetry format"):
+        load_telemetry(path)
+
+
+def test_load_versioned_json_envelope(tmp_path: Path) -> None:
+    path = tmp_path / "versioned.json"
+    path.write_text(
+        """
+        {
+          "schema_version": "1.0",
+          "records": [{
+            "run_id": "run-versioned",
+            "agent_name": "Agent",
+            "task_name": "Task",
+            "timestamp": "2026-05-20T09:00:00",
+            "status": "success",
+            "memory_reads": 1,
+            "memory_writes": 1,
+            "tool_calls": 2,
+            "failures": 0,
+            "retries": 0,
+            "confidence": 0.9,
+            "drift_score": 0.1,
+            "latency_ms": 250,
+            "notes": "versioned"
+          }]
+        }
+        """
+    )
+
+    df = load_telemetry(path)
+
+    assert len(df) == 1
+    assert df.loc[0, "schema_version"] == "1.0"
+
+
+def test_rejects_unsupported_schema_version(tmp_path: Path) -> None:
+    path = tmp_path / "unsupported.json"
+    path.write_text(
+        """
+        {
+          "schema_version": "2.0",
+          "records": [{
+            "run_id": "run-versioned",
+            "agent_name": "Agent",
+            "task_name": "Task",
+            "timestamp": "2026-05-20T09:00:00",
+            "status": "success",
+            "memory_reads": 1,
+            "memory_writes": 1,
+            "tool_calls": 2,
+            "failures": 0,
+            "retries": 0,
+            "confidence": 0.9,
+            "drift_score": 0.1,
+            "latency_ms": 250,
+            "notes": "versioned"
+          }]
+        }
+        """
+    )
+
+    with pytest.raises(ValidationError):
         load_telemetry(path)
 
 

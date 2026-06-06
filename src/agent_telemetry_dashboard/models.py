@@ -8,6 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 RunStatus = Literal["success", "warning", "failed"]
+SchemaVersion = Literal["1.0"]
 
 
 class TelemetryRecord(BaseModel):
@@ -15,6 +16,7 @@ class TelemetryRecord(BaseModel):
 
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
+    schema_version: SchemaVersion = "1.0"
     run_id: str = Field(min_length=1, max_length=80)
     agent_name: str = Field(min_length=1, max_length=80)
     task_name: str = Field(min_length=1, max_length=120)

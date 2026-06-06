@@ -11,6 +11,7 @@ import pandas as pd
 from agent_telemetry_dashboard.models import TelemetryRecord
 
 COLUMNS = [
+    "schema_version",
     "run_id",
     "agent_name",
     "task_name",
@@ -26,6 +27,22 @@ COLUMNS = [
     "latency_ms",
     "notes",
 ]
+
+
+def _records_from_json_payload(payload: object) -> list[dict[str, object]]:
+    """Return records from either a raw list or a versioned telemetry envelope."""
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        schema_version = payload.get("schema_version", "1.0")
+        records = payload.get("records")
+        if not isinstance(records, list):
+            raise ValueError("Versioned JSON telemetry must contain a records list")
+        return [
+            {"schema_version": schema_version, **record} if isinstance(record, dict) else record
+            for record in records
+        ]
+    raise ValueError("JSON telemetry must be a list of records or a versioned envelope")
 
 
 def records_to_dataframe(records: Iterable[TelemetryRecord]) -> pd.DataFrame:
@@ -56,9 +73,7 @@ def load_telemetry(path: str | Path) -> pd.DataFrame:
 
     if path.suffix.lower() == ".json":
         payload = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(payload, list):
-            raise ValueError("JSON telemetry must be a list of records")
-        raw_records = payload
+        raw_records = _records_from_json_payload(payload)
     elif path.suffix.lower() == ".csv":
         raw_records = pd.read_csv(path).to_dict(orient="records")
     else:

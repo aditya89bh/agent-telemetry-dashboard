@@ -28,6 +28,7 @@ Agent telemetry makes behavior observable:
 - Streamlit dashboard using local sample data
 - Pydantic models for strict typed telemetry validation
 - JSON and CSV telemetry loading utilities
+- Schema versioning support for raw JSON, versioned JSON envelopes, and CSV files
 - Deterministic Pandas metrics
 - Plotly charts for:
   - Tool calls per run
@@ -77,6 +78,7 @@ Sample records live in [`data/sample_telemetry.json`](data/sample_telemetry.json
 
 Each record includes:
 
+- `schema_version`
 - `run_id`
 - `agent_name`
 - `task_name`
@@ -94,7 +96,7 @@ Each record includes:
 
 See [`docs/telemetry_schema.md`](docs/telemetry_schema.md) for details.
 
-The loader rejects unknown fields, invalid score ranges, negative counts, and contradictory run summaries before data reaches the dashboard.
+The loader defaults records to schema version `1.0` and also supports JSON envelopes like `{ "schema_version": "1.0", "records": [...] }`. It rejects unknown fields, invalid score ranges, negative counts, and contradictory run summaries before data reaches the dashboard.
 
 ## Example use cases
 
