@@ -8,7 +8,7 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Any
 
-from agent_telemetry_dashboard.trace_store import SQLiteTraceStore, TraceRepository
+from agent_telemetry_dashboard.trace_store import SQLiteTraceStore, StoredTrace, TraceRepository
 
 JsonObject = dict[str, Any]
 CollectorHandler = Callable[[JsonObject], JsonObject]
@@ -38,6 +38,7 @@ class CollectorAPI:
         self.repository = TraceRepository(SQLiteTraceStore(self.config.store_path))
         self._routes: dict[tuple[str, str], CollectorHandler] = {}
         self.add_route("GET", "/health", self.health)
+        self.add_route("POST", "/v1/traces", self.ingest_trace)
 
     def add_route(self, method: str, path: str, handler: CollectorHandler) -> None:
         """Register a JSON handler for one HTTP method and path."""
@@ -65,6 +66,19 @@ class CollectorAPI:
             "service": "agent-telemetry-collector",
             "dataset_id": self.config.default_dataset_id,
         }
+
+    def ingest_trace(self, payload: JsonObject) -> JsonObject:
+        """Persist one generic telemetry trace."""
+        trace = StoredTrace(
+            trace_id=str(payload["trace_id"]),
+            dataset_id=str(payload.get("dataset_id", self.config.default_dataset_id)),
+            trace_type=str(payload.get("trace_type", "event")),
+            run_id=str(payload["run_id"]),
+            timestamp=str(payload["timestamp"]),
+            payload=dict(payload.get("payload", {})),
+        )
+        self.repository.save(trace)
+        return {"accepted": 1, "trace_ids": [trace.trace_id]}
 
 
 def create_collector(config: CollectorConfig | None = None) -> CollectorAPI:
