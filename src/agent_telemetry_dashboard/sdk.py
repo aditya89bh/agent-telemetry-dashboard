@@ -49,3 +49,16 @@ class TelemetryClient:
         """Emit a generic telemetry trace."""
         trace = self._trace(trace_type=trace_type, run_id=run_id, payload=payload)
         return self.repository.save(trace)
+
+    def emit_event(
+        self,
+        run_id: str,
+        event_name: str,
+        attributes: dict[str, object] | None = None,
+    ) -> StoredTrace:
+        """Emit a generic named telemetry event."""
+        return self.emit(
+            trace_type="event",
+            run_id=run_id,
+            payload={"event_name": event_name, "attributes": attributes or {}},
+        )
