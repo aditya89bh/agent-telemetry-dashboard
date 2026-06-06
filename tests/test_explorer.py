@@ -7,6 +7,7 @@ from agent_telemetry_dashboard.explorer import (
     failure_inspection,
     filter_runs_by_status,
     memory_event_timeline,
+    retry_inspection,
     run_detail,
     run_event_timeline,
     run_listing,
@@ -116,3 +117,12 @@ def test_failure_inspection_marks_failed_runs() -> None:
 
     assert inspection["has_failures"] is True
     assert inspection["severity"] == "high"
+
+
+def test_retry_inspection_reports_retry_ratio() -> None:
+    df = load_telemetry(DATA)
+    retried_run_id = df[df["retries"] > 0].iloc[0]["run_id"]
+    inspection = retry_inspection(run_detail(df, retried_run_id))
+
+    assert inspection["has_retries"] is True
+    assert inspection["retry_to_failure_ratio"] > 0

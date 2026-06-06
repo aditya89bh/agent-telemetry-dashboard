@@ -174,3 +174,18 @@ def failure_inspection(run: pd.Series) -> dict[str, object]:
         "severity": "high" if run["status"] == "failed" else "medium" if failures else "none",
         "notes": run["notes"],
     }
+
+
+def retry_inspection(run: pd.Series) -> dict[str, object]:
+    """Return retry diagnostics for a selected run."""
+    retries = int(run["retries"])
+    failures = int(run["failures"])
+    return {
+        "retries": retries,
+        "failures": failures,
+        "has_retries": retries > 0,
+        "retry_to_failure_ratio": round(retries / failures, 2) if failures else 0.0,
+        "recommendation": (
+            "Inspect failed tool/memory step" if retries else "No retry action needed"
+        ),
+    }

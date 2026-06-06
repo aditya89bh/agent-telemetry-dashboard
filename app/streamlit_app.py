@@ -14,6 +14,7 @@ from agent_telemetry_dashboard.explorer import (
     failure_inspection,
     filter_runs_by_status,
     memory_event_timeline,
+    retry_inspection,
     run_detail,
     run_event_timeline,
     run_metadata,
@@ -345,6 +346,17 @@ def render_runs_tab(df: pd.DataFrame) -> None:
     else:
         st.success("No failures recorded for this run.")
     st.json(failure_info)
+
+    st.subheader("Retry inspection")
+    retry_info = retry_inspection(detail)
+    if retry_info["has_retries"]:
+        st.warning(
+            f"{retry_info['retries']} retry attempt(s); "
+            f"ratio: {retry_info['retry_to_failure_ratio']}"
+        )
+    else:
+        st.success("No retries recorded for this run.")
+    st.json(retry_info)
 
 
 def render_data_tab(df: pd.DataFrame) -> None:
