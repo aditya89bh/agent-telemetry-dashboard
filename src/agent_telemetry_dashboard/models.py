@@ -72,3 +72,23 @@ class TelemetryRecord(BaseModel):
         if self.failures == 0 and self.retries > 0:
             raise ValueError("retries require at least one failure")
         return self
+
+
+class MultiAgentTelemetryRecord(TelemetryRecord):
+    """Optional extension for multi-agent and workflow-aware telemetry."""
+
+    session_id: str = Field(default="default", min_length=1, max_length=120)
+    workflow_id: str = Field(default="default", min_length=1, max_length=120)
+    parent_run_id: str | None = Field(default=None, max_length=80)
+    agent_role: AgentRole = "other"
+    handoff_from: str | None = Field(default=None, max_length=80)
+    handoff_to: str | None = Field(default=None, max_length=80)
+    shared_memory_keys: list[str] = Field(default_factory=list, max_length=20)
+
+    @field_validator("session_id", "workflow_id")
+    @classmethod
+    def multi_agent_ids_non_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("field cannot be empty")
+        return value

@@ -43,3 +43,7 @@ Both formats are included under `data/`.
 ## Schema versions
 
 The current supported schema version is `1.0`. JSON envelope files can declare the version once at the top level, and the loader applies it to each record. Plain JSON lists and CSV files default to `1.0`.
+
+## Multi-agent extension
+
+`MultiAgentTelemetryRecord` extends the base run summary with optional fields for multi-agent observability: `session_id`, `workflow_id`, `parent_run_id`, `agent_role`, `handoff_from`, `handoff_to`, and `shared_memory_keys`. Existing telemetry files remain valid because the loader still uses the base `TelemetryRecord` schema.
