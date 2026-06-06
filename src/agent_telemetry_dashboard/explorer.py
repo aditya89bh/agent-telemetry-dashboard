@@ -33,3 +33,10 @@ def search_runs(df: pd.DataFrame, query: str) -> pd.DataFrame:
         lambda column: column.str.casefold().str.contains(normalized, regex=False)
     )
     return run_listing(df[mask.any(axis=1)])
+
+
+def filter_runs_by_status(df: pd.DataFrame, statuses: list[str]) -> pd.DataFrame:
+    """Filter a run dataframe by status while preserving listing order."""
+    if df.empty or not statuses:
+        return run_listing(df)
+    return run_listing(df[df["status"].isin(statuses)])
