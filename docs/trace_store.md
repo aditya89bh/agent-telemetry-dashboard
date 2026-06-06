@@ -35,3 +35,7 @@ When `data/datasets.json` contains registered datasets, the dashboard sidebar sh
 ## Trace Filtering Utilities
 
 `filter_stored_traces` filters in-memory stored trace lists by dataset ID, trace type, and run ID. This is useful for UI workflows, tests, SDK-side previews, and post-query filtering without requiring a backend round trip.
+
+## Memory Trace Persistence
+
+`memory_trace_to_stored_trace` converts memory retrieval, write, influence, and decision trace models into normalized `StoredTrace` records. The conversion preserves trace ID, run ID, timestamp, dataset ID, trace type, and the JSON-safe model payload.

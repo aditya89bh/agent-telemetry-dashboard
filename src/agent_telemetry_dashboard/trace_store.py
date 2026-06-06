@@ -10,6 +10,13 @@ from typing import Protocol
 
 import pandas as pd
 
+from agent_telemetry_dashboard.models import (
+    MemoryDecisionTrace,
+    MemoryInfluenceTrace,
+    MemoryRetrievalTrace,
+    MemoryWriteTrace,
+)
+
 
 @dataclass(frozen=True)
 class StoredTrace:
@@ -199,3 +206,19 @@ def filter_stored_traces(
     if dataset_id is not None:
         filtered = [trace for trace in filtered if trace.dataset_id == dataset_id]
     return filtered
+
+
+def memory_trace_to_stored_trace(
+    trace: MemoryRetrievalTrace | MemoryWriteTrace | MemoryInfluenceTrace | MemoryDecisionTrace,
+    dataset_id: str,
+) -> StoredTrace:
+    """Convert a memory-aware trace model into a persisted trace record."""
+    trace_type = trace.__class__.__name__.replace("Memory", "memory_").replace("Trace", "").lower()
+    return StoredTrace(
+        trace_id=trace.trace_id,
+        dataset_id=dataset_id,
+        trace_type=trace_type,
+        run_id=trace.run_id,
+        timestamp=trace.timestamp.isoformat(),
+        payload=trace.model_dump(mode="json"),
+    )
