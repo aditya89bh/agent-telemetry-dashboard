@@ -228,3 +228,20 @@ def tool_reliability_metrics(df: pd.DataFrame, by: str = "agent_name") -> pd.Dat
         (grouped["tool_calls"] - grouped["failures"]).clip(lower=0) / grouped["tool_calls"]
     ).fillna(0.0)
     return grouped.sort_values("tool_success_rate", ascending=False).reset_index(drop=True)
+
+
+def retry_effectiveness_metrics(df: pd.DataFrame, by: str = "agent_name") -> pd.DataFrame:
+    """Estimate retry effectiveness from warning/success outcomes after retry activity."""
+    columns = [by, "retried_runs", "retries", "recovered_runs", "retry_effectiveness"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    retried = df[df["retries"] > 0]
+    if retried.empty:
+        return pd.DataFrame(columns=columns)
+    grouped = retried.groupby(by, as_index=False).agg(
+        retried_runs=("run_id", "count"),
+        retries=("retries", "sum"),
+        recovered_runs=("status", lambda status: int(status.isin(["success", "warning"]).sum())),
+    )
+    grouped["retry_effectiveness"] = grouped["recovered_runs"] / grouped["retried_runs"]
+    return grouped.sort_values("retry_effectiveness", ascending=False).reset_index(drop=True)

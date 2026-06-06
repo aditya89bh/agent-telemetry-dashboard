@@ -9,6 +9,7 @@ from agent_telemetry_dashboard.analytics import (
     failure_rates,
     latency_trend,
     memory_usage_trend,
+    retry_effectiveness_metrics,
     success_rates,
     tool_reliability_metrics,
 )
@@ -132,3 +133,17 @@ def test_tool_reliability_metrics_are_bounded() -> None:
         "tool_success_rate",
     }
     assert reliability["tool_success_rate"].between(0, 1).all()
+
+
+def test_retry_effectiveness_metrics_are_bounded() -> None:
+    df = load_telemetry(DATA)
+    effectiveness = retry_effectiveness_metrics(df)
+
+    assert set(effectiveness.columns) == {
+        "agent_name",
+        "retried_runs",
+        "retries",
+        "recovered_runs",
+        "retry_effectiveness",
+    }
+    assert effectiveness["retry_effectiveness"].between(0, 1).all()
