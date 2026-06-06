@@ -38,6 +38,18 @@ class CollectorResponse:
     body: JsonObject
 
 
+@dataclass(frozen=True)
+class CollectorError:
+    """Structured collector error response."""
+
+    code: str
+    message: str
+
+    def to_dict(self) -> JsonObject:
+        """Return the JSON-compatible error body."""
+        return {"error": self.code, "message": self.message}
+
+
 class CollectorAPI:
     """Small route registry for telemetry ingestion handlers."""
 
@@ -64,11 +76,13 @@ class CollectorAPI:
         """Dispatch a request to a registered handler."""
         handler = self._routes.get((method.upper(), path))
         if handler is None:
-            return CollectorResponse(
-                status_code=HTTPStatus.NOT_FOUND,
-                body={"error": "not_found", "message": f"No route for {method.upper()} {path}"},
-            )
-        return CollectorResponse(status_code=HTTPStatus.OK, body=handler(payload or {}))
+            error = CollectorError("not_found", f"No route for {method.upper()} {path}")
+            return CollectorResponse(status_code=HTTPStatus.NOT_FOUND, body=error.to_dict())
+        try:
+            return CollectorResponse(status_code=HTTPStatus.OK, body=handler(payload or {}))
+        except ValueError as exc:
+            error = CollectorError("validation_error", str(exc))
+            return CollectorResponse(status_code=HTTPStatus.BAD_REQUEST, body=error.to_dict())
 
     def health(self, payload: JsonObject | None = None) -> JsonObject:
         """Return collector health metadata."""
