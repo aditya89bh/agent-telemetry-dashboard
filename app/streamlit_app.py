@@ -72,17 +72,8 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def main() -> None:
-    st.title("📡 Agent Telemetry Dashboard")
-    st.caption(
-        "Local, deterministic telemetry inspection for memory-enabled and tool-using AI agents."
-    )
-
-    data_path = st.sidebar.text_input("Telemetry file", value=str(DEFAULT_DATA))
-    df = cached_load(data_path)
-    filtered = filter_data(df)
-
-    metrics = overview_metrics(filtered)
+def render_summary_cards(df: pd.DataFrame) -> None:
+    metrics = overview_metrics(df)
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Runs", metrics["runs"])
     c2.metric("Failed runs", metrics["failed_runs"], f"{metrics['failure_rate']:.1%}")
@@ -91,16 +82,14 @@ def main() -> None:
     c5.metric("Avg latency", f"{metrics['avg_latency_ms']:.0f} ms")
     c6.metric("Memory ops", metrics["total_memory_ops"])
 
-    if filtered.empty:
-        st.warning("No telemetry records match the selected filters.")
-        return
 
+def render_overview_tab(df: pd.DataFrame) -> None:
     left, right = st.columns(2)
     with left:
         st.subheader("Run status breakdown")
         st.plotly_chart(
             px.pie(
-                status_breakdown(filtered),
+                status_breakdown(df),
                 names="status",
                 values="runs",
                 hole=0.45,
@@ -111,38 +100,14 @@ def main() -> None:
 
         st.subheader("Tool calls per run")
         st.plotly_chart(
-            px.bar(tool_calls_per_run(filtered), x="run_id", y="tool_calls", color="agent_name"),
-            use_container_width=True,
-        )
-
-        st.subheader("Failure rate by agent")
-        st.plotly_chart(
-            px.bar(
-                failure_rate_by_agent(filtered),
-                x="agent_name",
-                y="failure_rate",
-                text_auto=".1%",
-            ),
-            use_container_width=True,
-        )
-
-        st.subheader("Failures and retries by task")
-        reliability_df = failure_retry_by_task(filtered)
-        st.plotly_chart(
-            px.bar(
-                reliability_df,
-                x="task_name",
-                y=["failures", "retries"],
-                barmode="group",
-                hover_data=["failed_runs"],
-            ),
+            px.bar(tool_calls_per_run(df), x="run_id", y="tool_calls", color="agent_name"),
             use_container_width=True,
         )
 
         st.subheader("Drift score over time")
         st.plotly_chart(
             px.line(
-                drift_over_time(filtered),
+                drift_over_time(df),
                 x="timestamp",
                 y="drift_score",
                 color="agent_name",
@@ -153,16 +118,20 @@ def main() -> None:
 
     with right:
         st.subheader("Memory reads/writes over time")
-        memory_df = memory_ops_over_time(filtered)
         st.plotly_chart(
-            px.line(memory_df, x="date", y=["memory_reads", "memory_writes"], markers=True),
+            px.line(
+                memory_ops_over_time(df),
+                x="date",
+                y=["memory_reads", "memory_writes"],
+                markers=True,
+            ),
             use_container_width=True,
         )
 
         st.subheader("Memory activity by agent")
         st.plotly_chart(
             px.bar(
-                memory_activity_by_agent(filtered),
+                memory_activity_by_agent(df),
                 x="agent_name",
                 y=["memory_reads", "memory_writes"],
                 barmode="group",
@@ -170,10 +139,44 @@ def main() -> None:
             use_container_width=True,
         )
 
+
+def render_reliability_tab(df: pd.DataFrame) -> None:
+    left, right = st.columns(2)
+    with left:
+        st.subheader("Failure rate by agent")
+        st.plotly_chart(
+            px.bar(
+                failure_rate_by_agent(df),
+                x="agent_name",
+                y="failure_rate",
+                text_auto=".1%",
+            ),
+            use_container_width=True,
+        )
+
+        st.subheader("Failures and retries by task")
+        st.plotly_chart(
+            px.bar(
+                failure_retry_by_task(df),
+                x="task_name",
+                y=["failures", "retries"],
+                barmode="group",
+                hover_data=["failed_runs"],
+            ),
+            use_container_width=True,
+        )
+
+    with right:
+        st.subheader("Retry count per task")
+        st.plotly_chart(
+            px.bar(retry_count_per_task(df), x="task_name", y="retries"),
+            use_container_width=True,
+        )
+
         st.subheader("Latency distribution")
         st.plotly_chart(
             px.histogram(
-                latency_distribution(filtered),
+                latency_distribution(df),
                 x="latency_ms",
                 color="status",
                 nbins=14,
@@ -185,7 +188,7 @@ def main() -> None:
         st.subheader("Confidence distribution")
         st.plotly_chart(
             px.histogram(
-                confidence_distribution(filtered),
+                confidence_distribution(df),
                 x="confidence",
                 color="status",
                 nbins=12,
@@ -194,14 +197,10 @@ def main() -> None:
             use_container_width=True,
         )
 
-        st.subheader("Retry count per task")
-        st.plotly_chart(
-            px.bar(retry_count_per_task(filtered), x="task_name", y="retries"),
-            use_container_width=True,
-        )
 
+def render_timeline_tab(df: pd.DataFrame) -> None:
     st.subheader("Run timeline")
-    timeline = filtered.sort_values("timestamp").copy()
+    timeline = df.sort_values("timestamp").copy()
     timeline["end"] = timeline["timestamp"] + pd.to_timedelta(timeline["latency_ms"], unit="ms")
     st.plotly_chart(
         px.timeline(
@@ -215,8 +214,39 @@ def main() -> None:
         use_container_width=True,
     )
 
+
+def render_data_tab(df: pd.DataFrame) -> None:
     st.subheader("Raw telemetry")
-    st.dataframe(filtered.sort_values("timestamp", ascending=False), use_container_width=True)
+    st.dataframe(df.sort_values("timestamp", ascending=False), use_container_width=True)
+
+
+def main() -> None:
+    st.title("📡 Agent Telemetry Dashboard")
+    st.caption(
+        "Local, deterministic telemetry inspection for memory-enabled and tool-using AI agents."
+    )
+
+    data_path = st.sidebar.text_input("Telemetry file", value=str(DEFAULT_DATA))
+    df = cached_load(data_path)
+    filtered = filter_data(df)
+
+    render_summary_cards(filtered)
+
+    if filtered.empty:
+        st.warning("No telemetry records match the selected filters.")
+        return
+
+    overview, reliability, timeline, data = st.tabs(
+        ["Overview", "Reliability", "Run timeline", "Raw data"]
+    )
+    with overview:
+        render_overview_tab(filtered)
+    with reliability:
+        render_reliability_tab(filtered)
+    with timeline:
+        render_timeline_tab(filtered)
+    with data:
+        render_data_tab(filtered)
 
 
 if __name__ == "__main__":

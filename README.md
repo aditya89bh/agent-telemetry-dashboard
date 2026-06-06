@@ -43,6 +43,7 @@ Agent telemetry makes behavior observable:
   - Retry count, failures, and failed runs per task
 - Run timeline view
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
+- Tabbed dashboard layout for overview, reliability, timeline, and raw data views
 - Pytest coverage for loading and metrics
 - GitHub Actions CI
 
