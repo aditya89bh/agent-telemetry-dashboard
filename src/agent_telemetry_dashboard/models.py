@@ -13,6 +13,7 @@ AgentRole = Literal["planner", "executor", "critic", "memory", "tool", "observer
 CommunicationType = Literal["message", "handoff", "memory_share", "tool_result", "status_update"]
 MemorySource = Literal["episodic", "semantic", "procedural", "working", "external", "other"]
 MemoryWriteOperation = Literal["create", "update", "delete", "merge", "expire"]
+MemoryInfluenceKind = Literal["decision", "tool_selection", "response", "plan", "safety", "other"]
 
 
 class AgentRegistryEntry(BaseModel):
@@ -141,3 +142,18 @@ class MemoryWriteTrace(BaseModel):
     importance_score: float = Field(default=0.0, ge=0.0, le=1.0)
     previous_summary: str = Field(default="", max_length=500)
     new_summary: str = Field(default="", max_length=500)
+
+
+class MemoryInfluenceTrace(BaseModel):
+    """Trace describing how a memory influenced downstream agent behavior."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    trace_id: str = Field(min_length=1, max_length=100)
+    run_id: str = Field(min_length=1, max_length=80)
+    memory_id: str = Field(min_length=1, max_length=120)
+    timestamp: datetime
+    influence_kind: MemoryInfluenceKind = "other"
+    target: str = Field(default="", max_length=200)
+    evidence: str = Field(default="", max_length=500)
+    influence_strength: float = Field(default=0.0, ge=0.0, le=1.0)

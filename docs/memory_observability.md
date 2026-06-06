@@ -33,3 +33,7 @@ The schema uses strict Pydantic validation and is backward-compatible with exist
 - `new_summary`
 
 This lets the dashboard distinguish passive retrieval from active memory lifecycle changes.
+
+## Memory Influence Tracking
+
+`MemoryInfluenceTrace` records how a retrieved or written memory affected downstream behavior. It captures the influenced target, evidence, influence kind (`decision`, `tool_selection`, `response`, `plan`, `safety`, or `other`), and an `influence_strength` score. `memory_influence_dataframe` converts these traces into sorted dataframes for dashboard views.
