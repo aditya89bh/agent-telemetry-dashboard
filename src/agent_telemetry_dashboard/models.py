@@ -9,6 +9,28 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 RunStatus = Literal["success", "warning", "failed"]
 SchemaVersion = Literal["1.0"]
+AgentRole = Literal["planner", "executor", "critic", "memory", "tool", "observer", "other"]
+
+
+class AgentRegistryEntry(BaseModel):
+    """Registry metadata for an agent participating in observed runs."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    agent_name: str = Field(min_length=1, max_length=80)
+    display_name: str = Field(min_length=1, max_length=120)
+    role: AgentRole = "other"
+    description: str = Field(default="", max_length=500)
+    owner: str = Field(default="", max_length=120)
+    enabled: bool = True
+
+    @field_validator("agent_name", "display_name")
+    @classmethod
+    def registry_names_non_empty(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("field cannot be empty")
+        return value
 
 
 class TelemetryRecord(BaseModel):

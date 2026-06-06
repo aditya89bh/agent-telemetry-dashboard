@@ -20,7 +20,7 @@ The dashboard expects one row per agent run or task-level run summary.
 | `latency_ms` | integer | Run duration or observed latency in milliseconds. |
 | `notes` | string | Optional human-readable context. |
 
-Validation is implemented in `src/agent_telemetry_dashboard/models.py` with Pydantic.
+Validation is implemented in `src/agent_telemetry_dashboard/models.py` with Pydantic. The same module also includes `AgentRegistryEntry` for describing agents that participate in multi-agent observability views.
 
 ## Validation rules
 
