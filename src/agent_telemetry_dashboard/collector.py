@@ -8,7 +8,12 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Any
 
-from agent_telemetry_dashboard.trace_store import SQLiteTraceStore, StoredTrace, TraceRepository
+from agent_telemetry_dashboard.trace_store import (
+    SQLiteTraceStore,
+    StoredTrace,
+    TraceRepository,
+    TraceSearchQuery,
+)
 
 JsonObject = dict[str, Any]
 CollectorHandler = Callable[[JsonObject], JsonObject]
@@ -63,6 +68,7 @@ class CollectorAPI:
         self.add_route("POST", "/v1/tool-calls", self.ingest_tool_call)
         self.add_route("POST", "/v1/run-lifecycle", self.ingest_run_lifecycle)
         self.add_route("POST", "/v1/traces/batch", self.ingest_trace_batch)
+        self.add_route("POST", "/v1/traces/search", self.search_traces)
 
     def add_route(self, method: str, path: str, handler: CollectorHandler) -> None:
         """Register a JSON handler for one HTTP method and path."""
@@ -106,6 +112,33 @@ class CollectorAPI:
         )
         self.repository.save(trace)
         return {"accepted": 1, "trace_ids": [trace.trace_id]}
+
+    def search_traces(self, payload: JsonObject) -> JsonObject:
+        """Search persisted traces with richer collector criteria."""
+        query = TraceSearchQuery(
+            dataset_id=payload.get("dataset_id"),
+            trace_type=payload.get("trace_type"),
+            run_id=payload.get("run_id"),
+            text=payload.get("text"),
+            start_timestamp=payload.get("start_timestamp"),
+            end_timestamp=payload.get("end_timestamp"),
+            limit=int(payload.get("limit", 100)),
+        )
+        traces = self.repository.search(query)
+        return {
+            "count": len(traces),
+            "traces": [
+                {
+                    "trace_id": trace.trace_id,
+                    "dataset_id": trace.dataset_id,
+                    "trace_type": trace.trace_type,
+                    "run_id": trace.run_id,
+                    "timestamp": trace.timestamp,
+                    "payload": trace.payload,
+                }
+                for trace in traces
+            ],
+        }
 
     def ingest_trace_batch(self, payload: JsonObject) -> JsonObject:
         """Persist a batch of generic telemetry traces."""

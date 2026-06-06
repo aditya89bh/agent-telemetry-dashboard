@@ -40,6 +40,19 @@ class TraceQuery:
     limit: int = 100
 
 
+@dataclass(frozen=True)
+class TraceSearchQuery:
+    """Richer trace search criteria for production collector views."""
+
+    dataset_id: str | None = None
+    trace_type: str | None = None
+    run_id: str | None = None
+    text: str | None = None
+    start_timestamp: str | None = None
+    end_timestamp: str | None = None
+    limit: int = 100
+
+
 class TraceStore(Protocol):
     """Protocol implemented by persistent trace storage backends."""
 
@@ -168,7 +181,8 @@ class TraceRepository:
         return self.store.query_traces(TraceQuery(dataset_id=dataset_id, limit=limit))
 
     def list_run_traces(
-        self, dataset_id: str,
+        self,
+        dataset_id: str,
         run_id: str,
         limit: int = 100,
     ) -> list[StoredTrace]:
@@ -176,6 +190,29 @@ class TraceRepository:
         return self.store.query_traces(
             TraceQuery(dataset_id=dataset_id, run_id=run_id, limit=limit)
         )
+
+    def search(self, query: TraceSearchQuery) -> list[StoredTrace]:
+        """Search traces using common dimensions, time bounds, and payload text."""
+        traces = self.store.query_traces(
+            TraceQuery(
+                dataset_id=query.dataset_id,
+                trace_type=query.trace_type,
+                run_id=query.run_id,
+                limit=query.limit,
+            )
+        )
+        if query.start_timestamp is not None:
+            traces = [trace for trace in traces if trace.timestamp >= query.start_timestamp]
+        if query.end_timestamp is not None:
+            traces = [trace for trace in traces if trace.timestamp <= query.end_timestamp]
+        if query.text:
+            needle = query.text.lower()
+            traces = [
+                trace
+                for trace in traces
+                if needle in json.dumps(trace.payload, default=str).lower()
+            ]
+        return traces[: query.limit]
 
 
 def traces_to_dataframe(traces: list[StoredTrace]) -> pd.DataFrame:
