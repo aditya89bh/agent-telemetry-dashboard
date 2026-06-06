@@ -71,4 +71,8 @@ The ingestion pipeline supports explicit schema migration before normalization a
 
 `openai_agents_trace_to_record` converts OpenAI Agents SDK-style traces or spans into dashboard telemetry records. It maps trace IDs, agent names, task inputs, timestamps, status, tool calls, memory activity, latency, confidence, drift, usage metadata, and errors into the dashboard schema.
 
+## Integration Examples
+
+The `examples/` directory includes runnable scripts for LangChain, CrewAI, and OpenAI Agents payloads. Each script converts framework-specific telemetry into a versioned JSON envelope that can be uploaded through the dashboard.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.
