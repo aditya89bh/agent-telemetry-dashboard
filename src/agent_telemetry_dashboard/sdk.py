@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Protocol
@@ -50,6 +51,8 @@ class HTTPTransport:
 
     base_url: str
     timeout_seconds: float = 5.0
+    retry_attempts: int = 0
+    retry_backoff_seconds: float = 0.1
 
     def send(self, trace: StoredTrace) -> None:
         """POST one trace to the collector API."""
@@ -69,9 +72,19 @@ class HTTPTransport:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with request.urlopen(http_request, timeout=self.timeout_seconds) as response:
-            if response.status >= 400:
-                raise RuntimeError(f"collector returned HTTP {response.status}")
+        last_error: Exception | None = None
+        for attempt in range(self.retry_attempts + 1):
+            try:
+                with request.urlopen(http_request, timeout=self.timeout_seconds) as response:
+                    if response.status >= 400:
+                        raise RuntimeError(f"collector returned HTTP {response.status}")
+                    return
+            except Exception as exc:
+                last_error = exc
+                if attempt < self.retry_attempts:
+                    time.sleep(self.retry_backoff_seconds * (attempt + 1))
+        if last_error is not None:
+            raise last_error
 
 
 def trace_payload(trace: StoredTrace) -> dict[str, object]:
