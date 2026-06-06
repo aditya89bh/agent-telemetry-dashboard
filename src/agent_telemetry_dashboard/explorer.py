@@ -87,3 +87,24 @@ def run_event_timeline(run: pd.Series) -> pd.DataFrame:
         }
     )
     return pd.DataFrame(events).sort_values("event_time").reset_index(drop=True)
+
+
+def memory_event_timeline(run: pd.Series) -> pd.DataFrame:
+    """Return memory-specific events for a selected run."""
+    start = run["timestamp"]
+    latency = int(run["latency_ms"])
+    rows = [
+        {
+            "event_time": start + pd.to_timedelta(max(latency // 5, 1), unit="ms"),
+            "event_type": "memory_reads",
+            "count": int(run["memory_reads"]),
+            "description": "Memory context reads performed during the run",
+        },
+        {
+            "event_time": start + pd.to_timedelta(max((latency * 4) // 5, 2), unit="ms"),
+            "event_type": "memory_writes",
+            "count": int(run["memory_writes"]),
+            "description": "Memory updates written after task execution",
+        },
+    ]
+    return pd.DataFrame(rows).sort_values("event_time").reset_index(drop=True)

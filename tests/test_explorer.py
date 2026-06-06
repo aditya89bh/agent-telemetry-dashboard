@@ -3,6 +3,7 @@ from pathlib import Path
 from agent_telemetry_dashboard.explorer import (
     RUN_LIST_COLUMNS,
     filter_runs_by_status,
+    memory_event_timeline,
     run_detail,
     run_event_timeline,
     run_listing,
@@ -56,3 +57,12 @@ def test_run_event_timeline_is_ordered() -> None:
     assert timeline["event_time"].is_monotonic_increasing
     assert timeline["event_type"].iloc[0] == "run_started"
     assert timeline["event_type"].iloc[-1] == "run_completed"
+
+
+def test_memory_event_timeline_contains_read_and_write_counts() -> None:
+    df = load_telemetry(DATA)
+    detail = run_detail(df, "run-001")
+    timeline = memory_event_timeline(detail)
+
+    assert set(timeline["event_type"]) == {"memory_reads", "memory_writes"}
+    assert timeline["count"].sum() == detail["memory_reads"] + detail["memory_writes"]

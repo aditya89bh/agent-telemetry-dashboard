@@ -10,6 +10,7 @@ import streamlit as st
 
 from agent_telemetry_dashboard.explorer import (
     filter_runs_by_status,
+    memory_event_timeline,
     run_detail,
     run_event_timeline,
     search_runs,
@@ -273,6 +274,19 @@ def render_runs_tab(df: pd.DataFrame) -> None:
         use_container_width=True,
     )
     st.dataframe(events, use_container_width=True, hide_index=True)
+
+    st.subheader("Memory event timeline")
+    memory_events = memory_event_timeline(detail)
+    st.plotly_chart(
+        px.bar(
+            memory_events,
+            x="event_time",
+            y="count",
+            color="event_type",
+            hover_data=["description"],
+        ),
+        use_container_width=True,
+    )
 
 
 def render_data_tab(df: pd.DataFrame) -> None:
