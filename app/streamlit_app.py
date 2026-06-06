@@ -36,6 +36,7 @@ from agent_telemetry_dashboard.explorer import (
     search_runs,
     tool_call_timeline,
 )
+from agent_telemetry_dashboard.export import analytics_export_json, analytics_quality_csv
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
@@ -391,6 +392,19 @@ def render_data_tab(df: pd.DataFrame) -> None:
 
 def render_analytics_tab(df: pd.DataFrame) -> None:
     st.subheader("Telemetry analytics")
+    export_left, export_right = st.columns(2)
+    export_left.download_button(
+        "Download analytics JSON",
+        analytics_export_json(df),
+        file_name="agent_telemetry_analytics.json",
+        mime="application/json",
+    )
+    export_right.download_button(
+        "Download run quality CSV",
+        analytics_quality_csv(df),
+        file_name="run_quality_scores.csv",
+        mime="text/csv",
+    )
     metrics = aggregate_metrics(df)
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Agents", metrics["agents"])

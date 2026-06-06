@@ -68,6 +68,7 @@ See [`docs/session_exploration.md`](docs/session_exploration.md) for the run-lev
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
 - Tabbed dashboard layout for overview, reliability, runs, analytics, timeline, and raw data views
 - Pytest coverage for loading, validation, filtering, generation, and metrics
+- Analytics export downloads for JSON summaries and run quality CSV
 - GitHub Actions CI
 
 ## Feature descriptions
