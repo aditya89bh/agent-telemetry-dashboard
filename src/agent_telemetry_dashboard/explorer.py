@@ -162,3 +162,15 @@ def run_metadata(run: pd.Series) -> dict[str, object]:
         "Latency (ms)": int(run["latency_ms"]),
         "Schema version": run["schema_version"],
     }
+
+
+def failure_inspection(run: pd.Series) -> dict[str, object]:
+    """Return failure diagnostics for a selected run."""
+    failures = int(run["failures"])
+    return {
+        "status": run["status"],
+        "failures": failures,
+        "has_failures": failures > 0,
+        "severity": "high" if run["status"] == "failed" else "medium" if failures else "none",
+        "notes": run["notes"],
+    }

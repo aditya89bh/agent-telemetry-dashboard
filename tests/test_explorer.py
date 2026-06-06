@@ -4,6 +4,7 @@ from agent_telemetry_dashboard.explorer import (
     RUN_LIST_COLUMNS,
     confidence_evolution,
     drift_evolution,
+    failure_inspection,
     filter_runs_by_status,
     memory_event_timeline,
     run_detail,
@@ -106,3 +107,12 @@ def test_run_metadata_contains_display_fields() -> None:
     assert metadata["Run ID"] == "run-001"
     assert metadata["Agent"] == "MemoryScout"
     assert "Schema version" in metadata
+
+
+def test_failure_inspection_marks_failed_runs() -> None:
+    df = load_telemetry(DATA)
+    failed_run_id = df[df["status"] == "failed"].iloc[0]["run_id"]
+    inspection = failure_inspection(run_detail(df, failed_run_id))
+
+    assert inspection["has_failures"] is True
+    assert inspection["severity"] == "high"

@@ -11,6 +11,7 @@ import streamlit as st
 from agent_telemetry_dashboard.explorer import (
     confidence_evolution,
     drift_evolution,
+    failure_inspection,
     filter_runs_by_status,
     memory_event_timeline,
     run_detail,
@@ -336,6 +337,14 @@ def render_runs_tab(df: pd.DataFrame) -> None:
         ),
         use_container_width=True,
     )
+
+    st.subheader("Failure inspection")
+    failure_info = failure_inspection(detail)
+    if failure_info["has_failures"]:
+        st.error(f"{failure_info['failures']} failure(s), severity: {failure_info['severity']}")
+    else:
+        st.success("No failures recorded for this run.")
+    st.json(failure_info)
 
 
 def render_data_tab(df: pd.DataFrame) -> None:
