@@ -59,4 +59,8 @@ Before developers inspect the full imported dataframe, the upload flow now shows
 
 The ingestion pipeline supports explicit schema migration before normalization and validation. Current telemetry uses schema version `1.0`; legacy `0.9` records are migrated by mapping historical fields such as `agent_id` and `task` into the current schema. Unknown schema versions are rejected with `IngestionError` so developers do not accidentally analyze incompatible telemetry.
 
+## LangChain Adapter
+
+`langchain_event_to_record` converts LangChain-style run/event dictionaries into dashboard telemetry records. It maps run IDs, chain names, run types, timestamps, child runs as tool calls, latency, confidence, status, and errors into the normalized telemetry schema.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.
