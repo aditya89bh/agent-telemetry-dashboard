@@ -67,4 +67,8 @@ The ingestion pipeline supports explicit schema migration before normalization a
 
 `crewai_task_to_record` converts CrewAI-style task execution payloads into dashboard telemetry records. It maps task IDs, agent role/name, task descriptions, timestamps, tools, latency, retries, failures, and outputs into the same schema used by uploaded telemetry.
 
+## OpenAI Agents Adapter
+
+`openai_agents_trace_to_record` converts OpenAI Agents SDK-style traces or spans into dashboard telemetry records. It maps trace IDs, agent names, task inputs, timestamps, status, tool calls, memory activity, latency, confidence, drift, usage metadata, and errors into the dashboard schema.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

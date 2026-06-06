@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from agent_telemetry_dashboard.adapters import crewai_task_to_record, langchain_event_to_record
+from agent_telemetry_dashboard.adapters import (
+    crewai_task_to_record,
+    langchain_event_to_record,
+    openai_agents_trace_to_record,
+)
 from agent_telemetry_dashboard.models import TelemetryRecord
 
 
@@ -48,3 +52,25 @@ def test_crewai_task_to_record_outputs_valid_telemetry() -> None:
     assert telemetry.status == "success"
     assert telemetry.tool_calls == 2
     assert telemetry.latency_ms == 320
+
+
+def test_openai_agents_trace_to_record_outputs_valid_telemetry() -> None:
+    record = openai_agents_trace_to_record(
+        {
+            "trace_id": "oa-1",
+            "agent_name": "SupportAgent",
+            "task": "Answer ticket",
+            "created_at": "2026-01-01T00:00:00",
+            "status": "errored",
+            "tool_calls": [{"name": "lookup"}],
+            "duration_ms": 500,
+            "error": "tool failed",
+        }
+    )
+
+    telemetry = TelemetryRecord.model_validate(record)
+    assert telemetry.run_id == "oa-1"
+    assert telemetry.agent_name == "SupportAgent"
+    assert telemetry.status == "failed"
+    assert telemetry.failures == 1
+    assert telemetry.tool_calls == 1
