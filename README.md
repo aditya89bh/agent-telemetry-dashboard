@@ -35,7 +35,7 @@ Agent telemetry makes behavior observable:
   - Summary metric cards for run count, failures, confidence, drift, latency, and memory operations
   - Run status breakdown
   - Tool calls per run
-  - Memory reads/writes over time
+  - Memory reads/writes over time and by agent
   - Failure rate
   - Latency distribution
   - Status-aware confidence distribution

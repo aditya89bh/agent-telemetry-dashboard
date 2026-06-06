@@ -6,6 +6,7 @@ from agent_telemetry_dashboard.metrics import (
     drift_over_time,
     failure_rate_by_agent,
     latency_distribution,
+    memory_activity_by_agent,
     memory_ops_over_time,
     overview_metrics,
     retry_count_per_task,
@@ -36,6 +37,15 @@ def test_memory_ops_over_time_groups_by_day() -> None:
     assert {"date", "memory_reads", "memory_writes"} == set(daily.columns)
     assert daily["memory_reads"].sum() == df["memory_reads"].sum()
     assert daily["memory_writes"].sum() == df["memory_writes"].sum()
+
+
+def test_memory_activity_by_agent_groups_reads_and_writes() -> None:
+    df = load_telemetry(DATA)
+    result = memory_activity_by_agent(df)
+
+    assert set(result.columns) == {"agent_name", "memory_reads", "memory_writes"}
+    assert result["memory_reads"].sum() == df["memory_reads"].sum()
+    assert result["memory_writes"].sum() == df["memory_writes"].sum()
 
 
 def test_failure_rate_by_agent() -> None:

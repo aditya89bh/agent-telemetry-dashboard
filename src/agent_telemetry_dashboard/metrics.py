@@ -43,6 +43,13 @@ def memory_ops_over_time(df: pd.DataFrame) -> pd.DataFrame:
     return daily.groupby("date", as_index=False)[["memory_reads", "memory_writes"]].sum()
 
 
+def memory_activity_by_agent(df: pd.DataFrame) -> pd.DataFrame:
+    """Return memory read/write totals per agent."""
+    if df.empty:
+        return pd.DataFrame(columns=["agent_name", "memory_reads", "memory_writes"])
+    return df.groupby("agent_name", as_index=False)[["memory_reads", "memory_writes"]].sum()
+
+
 def failure_rate_by_agent(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=["agent_name", "failure_rate"])

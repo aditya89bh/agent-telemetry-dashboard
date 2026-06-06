@@ -14,6 +14,7 @@ from agent_telemetry_dashboard.metrics import (
     drift_over_time,
     failure_rate_by_agent,
     latency_distribution,
+    memory_activity_by_agent,
     memory_ops_over_time,
     overview_metrics,
     retry_count_per_task,
@@ -133,6 +134,17 @@ def main() -> None:
         memory_df = memory_ops_over_time(filtered)
         st.plotly_chart(
             px.line(memory_df, x="date", y=["memory_reads", "memory_writes"], markers=True),
+            use_container_width=True,
+        )
+
+        st.subheader("Memory activity by agent")
+        st.plotly_chart(
+            px.bar(
+                memory_activity_by_agent(filtered),
+                x="agent_name",
+                y=["memory_reads", "memory_writes"],
+                barmode="group",
+            ),
             use_container_width=True,
         )
 
