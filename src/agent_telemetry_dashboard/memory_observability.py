@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import pandas as pd
 
-from agent_telemetry_dashboard.models import MemoryInfluenceTrace
+from agent_telemetry_dashboard.models import (
+    MemoryInfluenceTrace,
+    MemoryRetrievalTrace,
+    MemoryWriteTrace,
+)
 
 
 def memory_influence_dataframe(traces: list[MemoryInfluenceTrace]) -> pd.DataFrame:
@@ -42,3 +46,39 @@ def memory_influence_scores(traces: list[MemoryInfluenceTrace]) -> pd.DataFrame:
         .sort_values(["avg_influence_strength", "influence_events"], ascending=False)
         .reset_index(drop=True)
     )
+
+
+def memory_effectiveness_metrics(
+    retrievals: list[MemoryRetrievalTrace],
+    writes: list[MemoryWriteTrace],
+    influences: list[MemoryInfluenceTrace],
+) -> dict[str, float | int]:
+    """Summarize whether memory activity appears useful across runs."""
+    retrieval_count = len(retrievals)
+    write_count = len(writes)
+    influence_count = len(influences)
+    avg_relevance = (
+        sum(trace.relevance_score for trace in retrievals) / retrieval_count
+        if retrieval_count
+        else 0.0
+    )
+    avg_influence = (
+        sum(trace.influence_strength for trace in influences) / influence_count
+        if influence_count
+        else 0.0
+    )
+    influenced_memory_ids = {trace.memory_id for trace in influences}
+    retrieved_memory_ids = {trace.memory_id for trace in retrievals}
+    useful_retrieval_rate = (
+        len(retrieved_memory_ids & influenced_memory_ids) / len(retrieved_memory_ids)
+        if retrieved_memory_ids
+        else 0.0
+    )
+    return {
+        "retrievals": retrieval_count,
+        "writes": write_count,
+        "influences": influence_count,
+        "avg_relevance_score": avg_relevance,
+        "avg_influence_strength": avg_influence,
+        "useful_retrieval_rate": useful_retrieval_rate,
+    }

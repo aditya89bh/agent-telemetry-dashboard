@@ -41,3 +41,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Influence Scoring
 
 `memory_influence_scores` aggregates influence traces by memory item and reports event count, average influence strength, and maximum influence strength. This helps identify which memories most strongly shape agent behavior across runs.
+
+## Memory Effectiveness Metrics
+
+`memory_effectiveness_metrics` combines retrieval, write, and influence traces into high-level effectiveness indicators: retrieval count, write count, influence count, average relevance, average influence strength, and useful retrieval rate. The useful retrieval rate measures how many retrieved memory IDs later appear in influence traces.
