@@ -7,6 +7,7 @@ from agent_telemetry_dashboard.analytics import (
     drift_trend,
     failure_rates,
     latency_trend,
+    memory_usage_trend,
     success_rates,
 )
 from agent_telemetry_dashboard.loader import load_telemetry
@@ -90,3 +91,12 @@ def test_drift_trend_returns_bounded_scores() -> None:
     assert set(trend.columns) == {"period", "avg_drift_score", "max_drift_score", "runs"}
     assert trend["avg_drift_score"].between(0, 1).all()
     assert trend["runs"].sum() == len(df)
+
+
+def test_memory_usage_trend_sums_memory_ops() -> None:
+    df = load_telemetry(DATA)
+    trend = memory_usage_trend(df)
+
+    assert set(trend.columns) == {"period", "memory_reads", "memory_writes", "memory_ops", "runs"}
+    assert trend["memory_reads"].sum() == int(df["memory_reads"].sum())
+    assert trend["memory_writes"].sum() == int(df["memory_writes"].sum())

@@ -155,3 +155,24 @@ def drift_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
         .rename(columns={"timestamp": "period"})
     )
     return trend[columns]
+
+
+def memory_usage_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
+    """Analyze memory read/write usage over time."""
+    columns = ["period", "memory_reads", "memory_writes", "memory_ops", "runs"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    trend = (
+        df.set_index("timestamp")
+        .resample(freq)
+        .agg(
+            memory_reads=("memory_reads", "sum"),
+            memory_writes=("memory_writes", "sum"),
+            runs=("run_id", "count"),
+        )
+        .query("runs > 0")
+        .reset_index()
+        .rename(columns={"timestamp": "period"})
+    )
+    trend["memory_ops"] = trend["memory_reads"] + trend["memory_writes"]
+    return trend[columns]
