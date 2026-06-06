@@ -2,8 +2,16 @@ import pandas as pd
 import pytest
 from pydantic import ValidationError
 
-from agent_telemetry_dashboard.models import AgentRegistryEntry, MultiAgentTelemetryRecord
-from agent_telemetry_dashboard.multi_agent import agent_hierarchy, agent_relationship_graph
+from agent_telemetry_dashboard.models import (
+    AgentCommunicationEvent,
+    AgentRegistryEntry,
+    MultiAgentTelemetryRecord,
+)
+from agent_telemetry_dashboard.multi_agent import (
+    agent_hierarchy,
+    agent_relationship_graph,
+    communication_events_to_dataframe,
+)
 
 
 def test_agent_registry_entry_validates_agent_metadata() -> None:
@@ -93,3 +101,20 @@ def test_agent_relationship_graph_returns_nodes_and_edges() -> None:
         "relationship": "parent",
         "weight": 1,
     }
+
+
+def test_communication_events_convert_to_dataframe() -> None:
+    event = AgentCommunicationEvent(
+        event_id="evt-001",
+        timestamp="2026-05-20T09:00:00",
+        source_agent="Planner",
+        target_agent="Worker",
+        communication_type="message",
+        run_id="run-001",
+        payload_summary="Assign task",
+    )
+
+    frame = communication_events_to_dataframe([event])
+
+    assert frame.loc[0, "source_agent"] == "Planner"
+    assert frame.loc[0, "target_agent"] == "Worker"

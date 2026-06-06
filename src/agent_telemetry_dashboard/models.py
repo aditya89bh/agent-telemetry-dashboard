@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 RunStatus = Literal["success", "warning", "failed"]
 SchemaVersion = Literal["1.0"]
 AgentRole = Literal["planner", "executor", "critic", "memory", "tool", "observer", "other"]
+CommunicationType = Literal["message", "handoff", "memory_share", "tool_result", "status_update"]
 
 
 class AgentRegistryEntry(BaseModel):
@@ -92,3 +93,17 @@ class MultiAgentTelemetryRecord(TelemetryRecord):
         if not value:
             raise ValueError("field cannot be empty")
         return value
+
+
+class AgentCommunicationEvent(BaseModel):
+    """Communication event between agents in an observed workflow."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    event_id: str = Field(min_length=1, max_length=100)
+    timestamp: datetime
+    source_agent: str = Field(min_length=1, max_length=80)
+    target_agent: str = Field(min_length=1, max_length=80)
+    communication_type: CommunicationType = "message"
+    run_id: str | None = Field(default=None, max_length=80)
+    payload_summary: str = Field(default="", max_length=500)

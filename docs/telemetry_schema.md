@@ -46,4 +46,4 @@ The current supported schema version is `1.0`. JSON envelope files can declare t
 
 ## Multi-agent extension
 
-`MultiAgentTelemetryRecord` extends the base run summary with optional fields for multi-agent observability: `session_id`, `workflow_id`, `parent_run_id`, `agent_role`, `handoff_from`, `handoff_to`, and `shared_memory_keys`. Existing telemetry files remain valid because the loader still uses the base `TelemetryRecord` schema.
+`MultiAgentTelemetryRecord` extends the base run summary with optional fields for multi-agent observability: `session_id`, `workflow_id`, `parent_run_id`, `agent_role`, `handoff_from`, `handoff_to`, and `shared_memory_keys`. Existing telemetry files remain valid because the loader still uses the base `TelemetryRecord` schema. `AgentCommunicationEvent` models message, handoff, memory-share, tool-result, and status-update communication between agents.

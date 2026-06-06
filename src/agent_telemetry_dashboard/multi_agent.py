@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pandas as pd
 
+from agent_telemetry_dashboard.models import AgentCommunicationEvent
+
 
 def _column_or_default(df: pd.DataFrame, column: str, default: object) -> pd.Series:
     if column in df.columns:
@@ -80,3 +82,23 @@ def _dominant_status(status: pd.Series) -> str:
     if status.eq("warning").any():
         return "warning"
     return "success"
+
+
+def communication_events_to_dataframe(
+    events: list[AgentCommunicationEvent],
+) -> pd.DataFrame:
+    """Convert typed communication events into a dataframe."""
+    columns = [
+        "event_id",
+        "timestamp",
+        "source_agent",
+        "target_agent",
+        "communication_type",
+        "run_id",
+        "payload_summary",
+    ]
+    if not events:
+        return pd.DataFrame(columns=columns)
+    return pd.DataFrame([event.model_dump() for event in events], columns=columns).sort_values(
+        "timestamp"
+    )
