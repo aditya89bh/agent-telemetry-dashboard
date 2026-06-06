@@ -191,6 +191,8 @@ def workflow_visualization_edges(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
     work = df.copy()
     work["workflow_id"] = _column_or_default(work, "workflow_id", "default")
+    if "timestamp" not in work.columns:
+        work["timestamp"] = range(len(work))
     work = work.sort_values(["workflow_id", "timestamp"])
     rows = []
     for workflow_id, group in work.groupby("workflow_id"):
@@ -209,3 +211,25 @@ def workflow_visualization_edges(df: pd.DataFrame) -> pd.DataFrame:
                     }
                 )
     return pd.DataFrame(rows, columns=columns)
+
+
+def orchestration_metrics(df: pd.DataFrame) -> dict[str, float | int]:
+    """Compute high-level metrics for multi-agent orchestration."""
+    if df.empty:
+        return {
+            "workflows": 0,
+            "agents": 0,
+            "handoffs": 0,
+            "workflow_edges": 0,
+            "avg_agents_per_workflow": 0.0,
+        }
+    work = df.copy()
+    work["workflow_id"] = _column_or_default(work, "workflow_id", "default")
+    agents_per_workflow = work.groupby("workflow_id")["agent_name"].nunique()
+    return {
+        "workflows": int(work["workflow_id"].nunique()),
+        "agents": int(work["agent_name"].nunique()),
+        "handoffs": int(len(handoff_tracking(work))),
+        "workflow_edges": int(len(workflow_visualization_edges(work))),
+        "avg_agents_per_workflow": float(agents_per_workflow.mean()),
+    }

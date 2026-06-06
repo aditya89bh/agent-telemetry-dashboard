@@ -55,6 +55,7 @@ from agent_telemetry_dashboard.metrics import (
 from agent_telemetry_dashboard.multi_agent import (
     agent_utilization_metrics,
     multi_agent_comparison,
+    orchestration_metrics,
     workflow_visualization_edges,
 )
 
@@ -465,6 +466,13 @@ def render_analytics_tab(df: pd.DataFrame) -> None:
 
 def render_agents_tab(df: pd.DataFrame) -> None:
     st.subheader("Per-agent observability")
+    orchestration = orchestration_metrics(df)
+    o1, o2, o3, o4 = st.columns(4)
+    o1.metric("Workflows", orchestration["workflows"])
+    o2.metric("Agents", orchestration["agents"])
+    o3.metric("Handoffs", orchestration["handoffs"])
+    o4.metric("Workflow edges", orchestration["workflow_edges"])
+
     agents = sorted(df["agent_name"].unique())
     selected_agent = st.selectbox("Agent", agents)
     agent_df = df[df["agent_name"] == selected_agent]

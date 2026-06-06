@@ -14,6 +14,7 @@ from agent_telemetry_dashboard.multi_agent import (
     communication_events_to_dataframe,
     handoff_tracking,
     multi_agent_comparison,
+    orchestration_metrics,
     shared_memory_tracking,
     workflow_visualization_edges,
 )
@@ -243,3 +244,18 @@ def test_workflow_visualization_edges_connect_consecutive_agents() -> None:
     assert len(edges) == 1
     assert edges.loc[0, "source_agent"] == "Planner"
     assert edges.loc[0, "target_agent"] == "Worker"
+
+
+def test_orchestration_metrics_count_workflows_and_agents() -> None:
+    df = pd.DataFrame(
+        [
+            {"workflow_id": "wf-1", "run_id": "run-010", "agent_name": "Planner"},
+            {"workflow_id": "wf-1", "run_id": "run-011", "agent_name": "Worker"},
+        ]
+    )
+
+    metrics = orchestration_metrics(df)
+
+    assert metrics["workflows"] == 1
+    assert metrics["agents"] == 2
+    assert metrics["avg_agents_per_workflow"] == 2.0
