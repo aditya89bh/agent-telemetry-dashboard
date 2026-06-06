@@ -12,6 +12,7 @@ from agent_telemetry_dashboard.multi_agent import (
     agent_relationship_graph,
     communication_events_to_dataframe,
     handoff_tracking,
+    shared_memory_tracking,
 )
 
 
@@ -139,3 +140,22 @@ def test_handoff_tracking_extracts_handoff_rows() -> None:
 
     assert len(handoffs) == 1
     assert handoffs.loc[0, "handoff_from"] == "Planner"
+
+
+def test_shared_memory_tracking_explodes_memory_keys() -> None:
+    df = pd.DataFrame(
+        [
+            {
+                "run_id": "run-003",
+                "agent_name": "MemoryScout",
+                "shared_memory_keys": ["customer_context", "tool_trace"],
+                "memory_reads": 3,
+                "memory_writes": 1,
+            }
+        ]
+    )
+
+    shared = shared_memory_tracking(df)
+
+    assert len(shared) == 2
+    assert set(shared["shared_memory_key"]) == {"customer_context", "tool_trace"}

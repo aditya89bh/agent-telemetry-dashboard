@@ -113,3 +113,24 @@ def handoff_tracking(df: pd.DataFrame) -> pd.DataFrame:
     if handoffs.empty:
         return pd.DataFrame(columns=columns)
     return handoffs[columns].sort_values("timestamp").reset_index(drop=True)
+
+
+def shared_memory_tracking(df: pd.DataFrame) -> pd.DataFrame:
+    """Return shared memory key usage by agent and run."""
+    columns = ["run_id", "agent_name", "shared_memory_key", "memory_reads", "memory_writes"]
+    if df.empty or "shared_memory_keys" not in df.columns:
+        return pd.DataFrame(columns=columns)
+    rows = []
+    for row in df.itertuples(index=False):
+        keys = getattr(row, "shared_memory_keys", None) or []
+        for key in keys:
+            rows.append(
+                {
+                    "run_id": row.run_id,
+                    "agent_name": row.agent_name,
+                    "shared_memory_key": key,
+                    "memory_reads": row.memory_reads,
+                    "memory_writes": row.memory_writes,
+                }
+            )
+    return pd.DataFrame(rows, columns=columns)
