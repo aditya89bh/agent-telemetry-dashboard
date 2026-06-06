@@ -182,3 +182,30 @@ def multi_agent_comparison(df: pd.DataFrame) -> pd.DataFrame:
         avg_latency_ms=("latency_ms", "mean"),
     )
     return grouped[columns].sort_values("success_rate", ascending=False).reset_index(drop=True)
+
+
+def workflow_visualization_edges(df: pd.DataFrame) -> pd.DataFrame:
+    """Build ordered workflow edges between consecutive agent runs."""
+    columns = ["workflow_id", "source_agent", "target_agent", "source_run", "target_run"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    work = df.copy()
+    work["workflow_id"] = _column_or_default(work, "workflow_id", "default")
+    work = work.sort_values(["workflow_id", "timestamp"])
+    rows = []
+    for workflow_id, group in work.groupby("workflow_id"):
+        ordered = group.reset_index(drop=True)
+        for index in range(len(ordered) - 1):
+            source = ordered.loc[index]
+            target = ordered.loc[index + 1]
+            if source["agent_name"] != target["agent_name"]:
+                rows.append(
+                    {
+                        "workflow_id": workflow_id,
+                        "source_agent": source["agent_name"],
+                        "target_agent": target["agent_name"],
+                        "source_run": source["run_id"],
+                        "target_run": target["run_id"],
+                    }
+                )
+    return pd.DataFrame(rows, columns=columns)

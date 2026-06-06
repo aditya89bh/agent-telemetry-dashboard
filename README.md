@@ -68,7 +68,7 @@ See [`docs/telemetry_analytics.md`](docs/telemetry_analytics.md) for the analyti
   - Retry count, failures, failed runs per task, and selected-run failure/retry inspection
 - Searchable run listing with dedicated status filtering, run metadata, run detail, run comparison, event, memory, tool-call, and run timeline views
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
-- Tabbed dashboard layout for overview, reliability, runs, analytics, per-agent observability, multi-agent comparison, timeline, and raw data views
+- Tabbed dashboard layout for overview, reliability, runs, analytics, per-agent observability, multi-agent comparison, workflow visualization, timeline, and raw data views
 - Pytest coverage for loading, validation, filtering, generation, and metrics
 - Parent-child hierarchy, relationship graph, communication event, handoff, and shared memory helpers, and agent utilization metrics for multi-agent run relationships
 - Analytics export downloads for JSON summaries and run quality CSV

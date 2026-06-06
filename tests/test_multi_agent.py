@@ -15,6 +15,7 @@ from agent_telemetry_dashboard.multi_agent import (
     handoff_tracking,
     multi_agent_comparison,
     shared_memory_tracking,
+    workflow_visualization_edges,
 )
 
 
@@ -217,3 +218,28 @@ def test_multi_agent_comparison_returns_agent_rates() -> None:
 
     assert set(comparison["agent_name"]) == {"Planner", "Worker"}
     assert comparison["success_rate"].between(0, 1).all()
+
+
+def test_workflow_visualization_edges_connect_consecutive_agents() -> None:
+    df = pd.DataFrame(
+        [
+            {
+                "workflow_id": "wf-1",
+                "run_id": "run-008",
+                "agent_name": "Planner",
+                "timestamp": pd.Timestamp("2026-05-20T09:00:00"),
+            },
+            {
+                "workflow_id": "wf-1",
+                "run_id": "run-009",
+                "agent_name": "Worker",
+                "timestamp": pd.Timestamp("2026-05-20T09:01:00"),
+            },
+        ]
+    )
+
+    edges = workflow_visualization_edges(df)
+
+    assert len(edges) == 1
+    assert edges.loc[0, "source_agent"] == "Planner"
+    assert edges.loc[0, "target_agent"] == "Worker"

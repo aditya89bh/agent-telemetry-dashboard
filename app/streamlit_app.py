@@ -52,7 +52,11 @@ from agent_telemetry_dashboard.metrics import (
     status_breakdown,
     tool_calls_per_run,
 )
-from agent_telemetry_dashboard.multi_agent import agent_utilization_metrics, multi_agent_comparison
+from agent_telemetry_dashboard.multi_agent import (
+    agent_utilization_metrics,
+    multi_agent_comparison,
+    workflow_visualization_edges,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = ROOT / "data" / "sample_telemetry.json"
@@ -501,6 +505,22 @@ def render_agents_tab(df: pd.DataFrame) -> None:
         ),
         use_container_width=True,
     )
+
+    st.subheader("Workflow visualization")
+    workflow_edges = workflow_visualization_edges(df)
+    if workflow_edges.empty:
+        st.info("No cross-agent workflow transitions detected in the selected telemetry.")
+    else:
+        st.dataframe(workflow_edges, use_container_width=True, hide_index=True)
+        st.plotly_chart(
+            px.bar(
+                workflow_edges.groupby(["source_agent", "target_agent"], as_index=False).size(),
+                x="source_agent",
+                y="size",
+                color="target_agent",
+            ),
+            use_container_width=True,
+        )
 
 
 def main() -> None:
