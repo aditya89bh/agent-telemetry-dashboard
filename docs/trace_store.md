@@ -43,3 +43,7 @@ When `data/datasets.json` contains registered datasets, the dashboard sidebar sh
 ## Import-to-Store Pipeline
 
 `telemetry_dataframe_to_traces` converts validated dashboard telemetry rows into `run_summary` traces, and `import_dataframe_to_store` persists those traces through `TraceRepository`. This bridges the Phase 5 ingestion pipeline with persistent Phase 7 storage.
+
+## Saved Dataset Management
+
+`DatasetRegistry` supports registering, listing, retrieving, and removing saved dataset metadata. Dataset removal only updates registry metadata; trace backend deletion can be added later without changing the registry API.
