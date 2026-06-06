@@ -15,6 +15,7 @@ def test_analytics_export_json_contains_expected_sections() -> None:
     assert "agent_performance_scores" in payload
     assert "run_quality_scores" in payload
     assert "anomalies" in payload
+    assert "multi_agent" in payload
 
 
 def test_analytics_quality_csv_contains_quality_score() -> None:

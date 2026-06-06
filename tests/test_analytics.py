@@ -9,6 +9,7 @@ from agent_telemetry_dashboard.analytics import (
     failure_rates,
     latency_trend,
     memory_usage_trend,
+    multi_agent_analytics_summary,
     retry_effectiveness_metrics,
     run_quality_scores,
     success_rates,
@@ -185,3 +186,11 @@ def test_analytics_functions_handle_empty_dataframes() -> None:
     assert tool_reliability_metrics(df).empty
     assert retry_effectiveness_metrics(df).empty
     assert run_quality_scores(df).empty
+
+
+def test_multi_agent_analytics_summary_contains_sections() -> None:
+    df = load_telemetry(DATA)
+    summary = multi_agent_analytics_summary(df)
+
+    assert set(summary) == {"orchestration", "utilization", "comparison"}
+    assert summary["orchestration"]["agents"] == df["agent_name"].nunique()

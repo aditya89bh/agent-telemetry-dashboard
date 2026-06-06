@@ -4,6 +4,12 @@ from __future__ import annotations
 
 import pandas as pd
 
+from agent_telemetry_dashboard.multi_agent import (
+    agent_utilization_metrics,
+    multi_agent_comparison,
+    orchestration_metrics,
+)
+
 
 def aggregate_metrics(df: pd.DataFrame) -> dict[str, float | int]:
     """Compute aggregate analytics across a telemetry dataframe."""
@@ -265,3 +271,12 @@ def run_quality_scores(df: pd.DataFrame) -> pd.DataFrame:
     ).round(2)
     scored["quality_score"] = scored["quality_score"].clip(0, 100)
     return scored[columns].sort_values("quality_score", ascending=False).reset_index(drop=True)
+
+
+def multi_agent_analytics_summary(df: pd.DataFrame) -> dict[str, object]:
+    """Bundle multi-agent analytics for dashboard and export integrations."""
+    return {
+        "orchestration": orchestration_metrics(df),
+        "utilization": agent_utilization_metrics(df).to_dict(orient="records"),
+        "comparison": multi_agent_comparison(df).to_dict(orient="records"),
+    }

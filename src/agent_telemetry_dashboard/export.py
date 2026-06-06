@@ -10,6 +10,7 @@ from agent_telemetry_dashboard.analytics import (
     agent_performance_scores,
     aggregate_metrics,
     detect_anomalies,
+    multi_agent_analytics_summary,
     run_quality_scores,
 )
 
@@ -21,6 +22,7 @@ def analytics_export_payload(df: pd.DataFrame) -> dict[str, object]:
         "agent_performance_scores": agent_performance_scores(df).to_dict(orient="records"),
         "run_quality_scores": run_quality_scores(df).to_dict(orient="records"),
         "anomalies": detect_anomalies(df).to_dict(orient="records"),
+        "multi_agent": multi_agent_analytics_summary(df),
     }
 
 
