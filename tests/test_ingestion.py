@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import json
+import zipfile
+from io import BytesIO
 
-from agent_telemetry_dashboard.ingestion import ingest_csv_upload, ingest_json_upload
+from agent_telemetry_dashboard.ingestion import (
+    ingest_csv_upload,
+    ingest_json_upload,
+    ingest_zip_upload,
+)
 
 
 def valid_record() -> dict[str, object]:
@@ -53,3 +59,17 @@ def test_ingest_csv_upload() -> None:
     assert result.format == "csv"
     assert result.records == 1
     assert result.dataframe.loc[0, "run_id"] == "run-csv-1"
+
+
+def test_ingest_zip_upload_combines_supported_files() -> None:
+    archive_bytes = BytesIO()
+    with zipfile.ZipFile(archive_bytes, "w") as archive:
+        archive.writestr("runs.json", json.dumps([valid_record()]))
+        archive.writestr("notes.txt", "ignored")
+
+    result = ingest_zip_upload(archive_bytes.getvalue(), source_name="bundle.zip")
+
+    assert result.source_name == "bundle.zip"
+    assert result.format == "zip"
+    assert result.records == 1
+    assert result.dataframe.loc[0, "run_id"] == "run-json-1"

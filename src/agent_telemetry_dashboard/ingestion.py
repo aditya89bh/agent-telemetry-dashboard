@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import zipfile
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -47,5 +48,30 @@ def ingest_csv_upload(content: bytes, source_name: str = "upload.csv") -> Ingest
         source_name=source_name,
         format="csv",
         records=len(records),
+        dataframe=dataframe,
+    )
+
+
+def ingest_zip_upload(content: bytes, source_name: str = "upload.zip") -> IngestionResult:
+    """Parse all supported telemetry files from a ZIP upload."""
+    frames: list[pd.DataFrame] = []
+    with zipfile.ZipFile(BytesIO(content)) as archive:
+        for member in sorted(archive.namelist()):
+            if member.endswith("/"):
+                continue
+            suffix = member.rsplit(".", maxsplit=1)[-1].lower()
+            member_content = archive.read(member)
+            if suffix == "json":
+                frames.append(ingest_json_upload(member_content, source_name=member).dataframe)
+            elif suffix == "csv":
+                frames.append(ingest_csv_upload(member_content, source_name=member).dataframe)
+
+    dataframe = pd.concat(frames, ignore_index=True) if frames else records_to_dataframe([])
+    if not dataframe.empty:
+        dataframe = dataframe.sort_values("timestamp").reset_index(drop=True)
+    return IngestionResult(
+        source_name=source_name,
+        format="zip",
+        records=len(dataframe),
         dataframe=dataframe,
     )

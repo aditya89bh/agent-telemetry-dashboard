@@ -38,7 +38,11 @@ from agent_telemetry_dashboard.explorer import (
 )
 from agent_telemetry_dashboard.export import analytics_export_json, analytics_quality_csv
 from agent_telemetry_dashboard.filters import filter_telemetry
-from agent_telemetry_dashboard.ingestion import ingest_csv_upload, ingest_json_upload
+from agent_telemetry_dashboard.ingestion import (
+    ingest_csv_upload,
+    ingest_json_upload,
+    ingest_zip_upload,
+)
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
@@ -426,6 +430,10 @@ def render_upload_tab() -> None:
     elif uploaded_file.name.lower().endswith(".csv"):
         result = ingest_csv_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
         st.metric("Imported CSV records", result.records)
+        st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
+    elif uploaded_file.name.lower().endswith(".zip"):
+        result = ingest_zip_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
+        st.metric("Imported ZIP records", result.records)
         st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
 
 

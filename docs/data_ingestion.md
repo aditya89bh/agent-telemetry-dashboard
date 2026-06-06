@@ -23,4 +23,8 @@ Uploaded JSON records are validated with the existing `TelemetryRecord` model an
 
 CSV uploads use the same columns as `data/sample_telemetry.csv`. Rows are validated with the existing schema before they are displayed in the upload page, so imported CSV data remains compatible with the overview, session exploration, analytics, and multi-agent tabs.
 
+## ZIP Uploads
+
+ZIP uploads can bundle multiple `.json` and `.csv` telemetry files. The ingestion layer reads supported files from the archive, ignores unrelated files, validates every record, and combines the imported runs into one timestamp-sorted dataframe.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.
