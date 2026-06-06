@@ -26,7 +26,7 @@ Agent telemetry makes behavior observable:
 ## Features
 
 - Streamlit dashboard using local sample data
-- Pydantic models for typed telemetry validation
+- Pydantic models for strict typed telemetry validation
 - JSON and CSV telemetry loading utilities
 - Deterministic Pandas metrics
 - Plotly charts for:
@@ -93,6 +93,8 @@ Each record includes:
 - `notes`
 
 See [`docs/telemetry_schema.md`](docs/telemetry_schema.md) for details.
+
+The loader rejects unknown fields, invalid score ranges, negative counts, and contradictory run summaries before data reaches the dashboard.
 
 ## Example use cases
 

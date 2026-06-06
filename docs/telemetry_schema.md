@@ -21,6 +21,16 @@ The dashboard expects one row per agent run or task-level run summary.
 
 Validation is implemented in `src/agent_telemetry_dashboard/models.py` with Pydantic.
 
+## Validation rules
+
+- Unknown fields are rejected so telemetry producers cannot silently drift from the schema.
+- Identifiers and names must be non-empty after trimming whitespace.
+- Count fields must be non-negative.
+- `confidence` and `drift_score` must be between `0.0` and `1.0`.
+- Successful runs cannot report failures.
+- Failed runs must report at least one failure.
+- Retries require at least one failure.
+
 ## Supported formats
 
 - JSON: a list of telemetry objects

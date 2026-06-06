@@ -59,3 +59,58 @@ def test_validation_rejects_bad_record(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError):
         load_telemetry(path)
+
+
+def test_validation_rejects_contradictory_success_record(tmp_path: Path) -> None:
+    path = tmp_path / "contradictory.json"
+    path.write_text(
+        """
+        [{
+          "run_id": "run-contradictory",
+          "agent_name": "Agent",
+          "task_name": "Task",
+          "timestamp": "2026-05-20T09:00:00",
+          "status": "success",
+          "memory_reads": 1,
+          "memory_writes": 0,
+          "tool_calls": 1,
+          "failures": 1,
+          "retries": 0,
+          "confidence": 0.8,
+          "drift_score": 0.1,
+          "latency_ms": 100,
+          "notes": "contradictory"
+        }]
+        """
+    )
+
+    with pytest.raises(ValidationError, match="successful runs cannot report failures"):
+        load_telemetry(path)
+
+
+def test_validation_rejects_unexpected_fields(tmp_path: Path) -> None:
+    path = tmp_path / "extra.json"
+    path.write_text(
+        """
+        [{
+          "run_id": "run-extra",
+          "agent_name": "Agent",
+          "task_name": "Task",
+          "timestamp": "2026-05-20T09:00:00",
+          "status": "success",
+          "memory_reads": 1,
+          "memory_writes": 0,
+          "tool_calls": 1,
+          "failures": 0,
+          "retries": 0,
+          "confidence": 0.8,
+          "drift_score": 0.1,
+          "latency_ms": 100,
+          "notes": "extra",
+          "unexpected": "field"
+        }]
+        """
+    )
+
+    with pytest.raises(ValidationError):
+        load_telemetry(path)
