@@ -43,6 +43,7 @@ from agent_telemetry_dashboard.import_history import (
     create_import_history_entry,
     load_import_history,
 )
+from agent_telemetry_dashboard.import_preview import import_preview, import_preview_summary
 from agent_telemetry_dashboard.ingestion import (
     IngestionError,
     ingest_bulk_uploads,
@@ -446,13 +447,18 @@ def render_upload_tab() -> None:
         return
 
     st.metric(f"Imported {result.format.upper()} records", result.records)
+    preview_summary = import_preview_summary(result.dataframe)
+    st.subheader("Import preview")
+    st.write(preview_summary)
+    st.dataframe(import_preview(result.dataframe), use_container_width=True, hide_index=True)
     stats = ingestion_statistics(result.dataframe)
     s1, s2, s3, s4 = st.columns(4)
     s1.metric("Imported agents", stats["agents"])
     s2.metric("Imported tasks", stats["tasks"])
     s3.metric("Success rate", f"{stats['success_rate']:.1%}")
     s4.metric("Avg latency", f"{stats['avg_latency_ms']:.0f} ms")
-    st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
+    with st.expander("Full imported dataframe"):
+        st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
     entry = create_import_history_entry(result.source_name, result.format, result.records)
     append_import_history(IMPORT_HISTORY_PATH, entry)
 

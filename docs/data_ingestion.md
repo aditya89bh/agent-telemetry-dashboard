@@ -51,4 +51,8 @@ Imported datasets are summarized with record count, distinct agents, distinct ta
 
 The upload page supports selecting multiple telemetry files at once. `ingest_bulk_uploads` dispatches each JSON, CSV, or ZIP upload through the existing ingestion pipeline, combines the validated dataframes, sorts the imported records by timestamp, and reports one combined import result.
 
+## Import Preview
+
+Before developers inspect the full imported dataframe, the upload flow now shows an import preview summary with record count, date range, statuses, and a compact table of representative run fields. This keeps large imports reviewable without hiding access to the full dataset.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.
