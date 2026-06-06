@@ -39,4 +39,8 @@ Upload parsing and validation failures raise `IngestionError`, a user-facing exc
 
 The ingestion layer normalizes common external field names before validation. For example, `agent` maps to `agent_name`, `task` maps to `task_name`, `duration_ms` maps to `latency_ms`, and status aliases such as `ok` or `error` map to dashboard statuses. Missing optional metrics default to zero-valued telemetry fields so lightweight exports can still be imported safely.
 
+## Import History
+
+Successful uploads are recorded in `data/import_history.jsonl` with source name, format, record count, status, timestamp, and an optional message. The upload page displays the latest import history entries so developers can audit recent ingestion activity.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

@@ -38,6 +38,11 @@ from agent_telemetry_dashboard.explorer import (
 )
 from agent_telemetry_dashboard.export import analytics_export_json, analytics_quality_csv
 from agent_telemetry_dashboard.filters import filter_telemetry
+from agent_telemetry_dashboard.import_history import (
+    append_import_history,
+    create_import_history_entry,
+    load_import_history,
+)
 from agent_telemetry_dashboard.ingestion import (
     IngestionError,
     ingest_csv_upload,
@@ -67,6 +72,7 @@ from agent_telemetry_dashboard.multi_agent import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = ROOT / "data" / "sample_telemetry.json"
+IMPORT_HISTORY_PATH = ROOT / "data" / "import_history.jsonl"
 
 st.set_page_config(
     page_title="Agent Telemetry Dashboard",
@@ -442,6 +448,13 @@ def render_upload_tab() -> None:
 
     st.metric(f"Imported {result.format.upper()} records", result.records)
     st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
+    entry = create_import_history_entry(result.source_name, result.format, result.records)
+    append_import_history(IMPORT_HISTORY_PATH, entry)
+
+    history = load_import_history(IMPORT_HISTORY_PATH)
+    if history:
+        st.subheader("Import history")
+        st.dataframe([item.__dict__ for item in history[-10:]], use_container_width=True)
 
 
 def render_analytics_tab(df: pd.DataFrame) -> None:
