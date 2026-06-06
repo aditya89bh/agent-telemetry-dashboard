@@ -49,6 +49,7 @@ from agent_telemetry_dashboard.ingestion import (
     ingest_json_upload,
     ingest_zip_upload,
 )
+from agent_telemetry_dashboard.ingestion_stats import ingestion_statistics
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
@@ -447,6 +448,12 @@ def render_upload_tab() -> None:
         return
 
     st.metric(f"Imported {result.format.upper()} records", result.records)
+    stats = ingestion_statistics(result.dataframe)
+    s1, s2, s3, s4 = st.columns(4)
+    s1.metric("Imported agents", stats["agents"])
+    s2.metric("Imported tasks", stats["tasks"])
+    s3.metric("Success rate", f"{stats['success_rate']:.1%}")
+    s4.metric("Avg latency", f"{stats['avg_latency_ms']:.0f} ms")
     st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
     entry = create_import_history_entry(result.source_name, result.format, result.records)
     append_import_history(IMPORT_HISTORY_PATH, entry)
