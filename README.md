@@ -40,7 +40,7 @@ Agent telemetry makes behavior observable:
   - Latency distribution
   - Status-aware confidence distribution
   - Drift score over time
-  - Retry count per task
+  - Retry count, failures, and failed runs per task
 - Run timeline view
 - Filters for agent name, run status, and date range
 - Pytest coverage for loading and metrics

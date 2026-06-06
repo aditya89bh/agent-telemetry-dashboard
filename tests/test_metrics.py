@@ -5,6 +5,7 @@ from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
     drift_over_time,
     failure_rate_by_agent,
+    failure_retry_by_task,
     latency_distribution,
     memory_activity_by_agent,
     memory_ops_over_time,
@@ -54,6 +55,16 @@ def test_failure_rate_by_agent() -> None:
 
     assert set(result.columns) == {"agent_name", "failure_rate"}
     assert result["failure_rate"].between(0, 1).all()
+
+
+def test_failure_retry_by_task_sums_reliability_counts() -> None:
+    df = load_telemetry(DATA)
+    result = failure_retry_by_task(df)
+
+    assert set(result.columns) == {"task_name", "failures", "retries", "failed_runs"}
+    assert result["failures"].sum() == df["failures"].sum()
+    assert result["retries"].sum() == df["retries"].sum()
+    assert result["failed_runs"].sum() == int(df["status"].eq("failed").sum())
 
 
 def test_status_breakdown_counts_runs() -> None:

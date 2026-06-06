@@ -80,6 +80,22 @@ def retry_count_per_task(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def failure_retry_by_task(df: pd.DataFrame) -> pd.DataFrame:
+    """Return failure and retry totals per task for reliability analysis."""
+    if df.empty:
+        return pd.DataFrame(columns=["task_name", "failures", "retries", "failed_runs"])
+    grouped = df.assign(failed_run=df["status"].eq("failed").astype(int)).groupby(
+        "task_name",
+        as_index=False,
+    )
+    result = grouped.agg(
+        failures=("failures", "sum"),
+        retries=("retries", "sum"),
+        failed_runs=("failed_run", "sum"),
+    )
+    return result.sort_values(["failures", "retries"], ascending=False).reset_index(drop=True)
+
+
 def drift_over_time(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=["timestamp", "agent_name", "drift_score"])

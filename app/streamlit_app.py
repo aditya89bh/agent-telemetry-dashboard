@@ -13,6 +13,7 @@ from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
     drift_over_time,
     failure_rate_by_agent,
+    failure_retry_by_task,
     latency_distribution,
     memory_activity_by_agent,
     memory_ops_over_time,
@@ -113,6 +114,19 @@ def main() -> None:
                 x="agent_name",
                 y="failure_rate",
                 text_auto=".1%",
+            ),
+            use_container_width=True,
+        )
+
+        st.subheader("Failures and retries by task")
+        reliability_df = failure_retry_by_task(filtered)
+        st.plotly_chart(
+            px.bar(
+                reliability_df,
+                x="task_name",
+                y=["failures", "retries"],
+                barmode="group",
+                hover_data=["failed_runs"],
             ),
             use_container_width=True,
         )
