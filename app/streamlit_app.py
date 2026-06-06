@@ -45,9 +45,7 @@ from agent_telemetry_dashboard.import_history import (
 )
 from agent_telemetry_dashboard.ingestion import (
     IngestionError,
-    ingest_csv_upload,
-    ingest_json_upload,
-    ingest_zip_upload,
+    ingest_bulk_uploads,
 )
 from agent_telemetry_dashboard.ingestion_stats import ingestion_statistics
 from agent_telemetry_dashboard.loader import load_telemetry
@@ -415,32 +413,32 @@ def render_upload_tab() -> None:
         "Import external agent telemetry into the dashboard. "
         "Format-specific ingestion support is added incrementally in Phase 5."
     )
-    uploaded_file = st.file_uploader(
-        "Upload telemetry file",
+    uploaded_files = st.file_uploader(
+        "Upload telemetry file(s)",
         type=["json", "csv", "zip"],
+        accept_multiple_files=True,
         help="Use this page to stage telemetry exported by external agent systems.",
     )
-    if uploaded_file is None:
-        st.info("Choose a telemetry file to begin an import.")
+    if not uploaded_files:
+        st.info("Choose one or more telemetry files to begin an import.")
         return
-    st.success(f"Selected `{uploaded_file.name}` for import preview.")
-    st.write(
-        {
-            "filename": uploaded_file.name,
-            "size_bytes": uploaded_file.size,
-            "content_type": uploaded_file.type or "unknown",
-        }
+    st.success(f"Selected {len(uploaded_files)} file(s) for import preview.")
+    st.dataframe(
+        [
+            {
+                "filename": uploaded_file.name,
+                "size_bytes": uploaded_file.size,
+                "content_type": uploaded_file.type or "unknown",
+            }
+            for uploaded_file in uploaded_files
+        ],
+        use_container_width=True,
+        hide_index=True,
     )
     try:
-        if uploaded_file.name.lower().endswith(".json"):
-            result = ingest_json_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
-        elif uploaded_file.name.lower().endswith(".csv"):
-            result = ingest_csv_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
-        elif uploaded_file.name.lower().endswith(".zip"):
-            result = ingest_zip_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
-        else:
-            st.warning("Unsupported upload format.")
-            return
+        result = ingest_bulk_uploads(
+            [(uploaded_file.name, uploaded_file.getvalue()) for uploaded_file in uploaded_files]
+        )
     except IngestionError as exc:
         st.error(str(exc))
         for error in exc.errors[:10]:

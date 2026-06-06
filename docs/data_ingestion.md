@@ -47,4 +47,8 @@ Successful uploads are recorded in `data/import_history.jsonl` with source name,
 
 Imported datasets are summarized with record count, distinct agents, distinct tasks, success rate, failure rate, average latency, and average confidence. These metrics help developers quickly check whether an import looks reasonable before analyzing it in the existing dashboard views.
 
+## Bulk Imports
+
+The upload page supports selecting multiple telemetry files at once. `ingest_bulk_uploads` dispatches each JSON, CSV, or ZIP upload through the existing ingestion pipeline, combines the validated dataframes, sorts the imported records by timestamp, and reports one combined import result.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

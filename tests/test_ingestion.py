@@ -8,6 +8,7 @@ from io import BytesIO
 
 from agent_telemetry_dashboard.ingestion import (
     IngestionError,
+    ingest_bulk_uploads,
     ingest_csv_upload,
     ingest_json_upload,
     ingest_zip_upload,
@@ -120,3 +121,16 @@ def test_normalize_telemetry_record_maps_common_external_fields() -> None:
     assert normalized["latency_ms"] == 42
     assert normalized["schema_version"] == "1.0"
     assert normalized["memory_reads"] == 0
+
+
+def test_ingest_bulk_uploads_combines_multiple_files() -> None:
+    first = json.dumps([valid_record()]).encode("utf-8")
+    second_record = valid_record() | {"run_id": "run-json-2"}
+    second = json.dumps([second_record]).encode("utf-8")
+
+    result = ingest_bulk_uploads([("first.json", first), ("second.json", second)])
+
+    assert result.source_name == "bulk:2 files"
+    assert result.format == "json"
+    assert result.records == 2
+    assert result.dataframe["run_id"].tolist() == ["run-json-1", "run-json-2"]

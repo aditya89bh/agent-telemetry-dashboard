@@ -202,3 +202,31 @@ def ingest_zip_upload(content: bytes, source_name: str = "upload.zip") -> Ingest
         records=len(dataframe),
         dataframe=dataframe,
     )
+
+
+def ingest_upload(content: bytes, source_name: str) -> IngestionResult:
+    """Dispatch an uploaded file to the correct format-specific ingestion helper."""
+    lower_name = source_name.lower()
+    if lower_name.endswith(".json"):
+        return ingest_json_upload(content, source_name=source_name)
+    if lower_name.endswith(".csv"):
+        return ingest_csv_upload(content, source_name=source_name)
+    if lower_name.endswith(".zip"):
+        return ingest_zip_upload(content, source_name=source_name)
+    raise IngestionError("Unsupported telemetry upload format", source_name=source_name)
+
+
+def ingest_bulk_uploads(uploads: list[tuple[str, bytes]]) -> IngestionResult:
+    """Import multiple uploaded telemetry files into one combined result."""
+    results = [ingest_upload(content, source_name=name) for name, content in uploads]
+    frames = [result.dataframe for result in results]
+    dataframe = pd.concat(frames, ignore_index=True) if frames else records_to_dataframe([])
+    if not dataframe.empty:
+        dataframe = dataframe.sort_values("timestamp").reset_index(drop=True)
+    formats = "+".join(sorted({result.format for result in results})) if results else "bulk"
+    return IngestionResult(
+        source_name=f"bulk:{len(results)} files",
+        format=formats,
+        records=len(dataframe),
+        dataframe=dataframe,
+    )
