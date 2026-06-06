@@ -19,4 +19,8 @@ JSON uploads can be either a raw list of telemetry records or a versioned envelo
 
 Uploaded JSON records are validated with the existing `TelemetryRecord` model and converted into the same dataframe shape used by local file loading.
 
+## CSV Uploads
+
+CSV uploads use the same columns as `data/sample_telemetry.csv`. Rows are validated with the existing schema before they are displayed in the upload page, so imported CSV data remains compatible with the overview, session exploration, analytics, and multi-agent tabs.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

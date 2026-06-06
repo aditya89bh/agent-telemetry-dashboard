@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from io import BytesIO
 
 import pandas as pd
 
@@ -30,6 +31,21 @@ def ingest_json_upload(content: bytes, source_name: str = "upload.json") -> Inge
     return IngestionResult(
         source_name=source_name,
         format="json",
+        records=len(records),
+        dataframe=dataframe,
+    )
+
+
+def ingest_csv_upload(content: bytes, source_name: str = "upload.csv") -> IngestionResult:
+    """Parse a CSV upload into the dashboard telemetry dataframe format."""
+    raw_records = pd.read_csv(BytesIO(content), dtype={"schema_version": "string"}).to_dict(
+        orient="records"
+    )
+    records = [TelemetryRecord.model_validate(item) for item in raw_records]
+    dataframe = records_to_dataframe(records)
+    return IngestionResult(
+        source_name=source_name,
+        format="csv",
         records=len(records),
         dataframe=dataframe,
     )
