@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agent_telemetry_dashboard.memory_observability import (
     detect_memory_conflicts,
+    memory_analytics_summary,
     memory_audit_timeline,
     memory_decision_trace_dataframe,
     memory_drift_metrics,
@@ -367,3 +368,22 @@ def test_memory_health_score_combines_quality_and_risk_signals() -> None:
     assert health["memory_health_score"] > 0.8
     assert health["conflict_count"] == 0
     assert health["avg_drift_score"] == 0.0
+
+
+def test_memory_analytics_summary_integrates_memory_activity() -> None:
+    import pandas as pd
+
+    df = pd.DataFrame(
+        [
+            {"memory_reads": 1, "memory_writes": 0, "status": "success"},
+            {"memory_reads": 0, "memory_writes": 2, "status": "failed"},
+            {"memory_reads": 0, "memory_writes": 0, "status": "success"},
+        ]
+    )
+
+    summary = memory_analytics_summary(df)
+
+    assert summary["memory_active_runs"] == 2
+    assert summary["memory_active_rate"] == 2 / 3
+    assert summary["avg_memory_ops_per_run"] == 1.0
+    assert summary["memory_failure_rate"] == 0.5

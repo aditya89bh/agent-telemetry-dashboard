@@ -50,7 +50,10 @@ from agent_telemetry_dashboard.ingestion import (
 )
 from agent_telemetry_dashboard.ingestion_stats import ingestion_statistics
 from agent_telemetry_dashboard.loader import load_telemetry
-from agent_telemetry_dashboard.memory_observability import memory_health_score
+from agent_telemetry_dashboard.memory_observability import (
+    memory_analytics_summary,
+    memory_health_score,
+)
 from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
     drift_over_time,
@@ -495,6 +498,12 @@ def render_analytics_tab(df: pd.DataFrame) -> None:
     c2.metric("Tasks", metrics["tasks"])
     c3.metric("Success runs", metrics["success_runs"])
     c4.metric("Total retries", metrics["total_retries"])
+    memory_metrics = memory_analytics_summary(df)
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Memory-active runs", memory_metrics["memory_active_runs"])
+    m2.metric("Memory-active rate", f"{memory_metrics['memory_active_rate']:.1%}")
+    m3.metric("Avg memory ops/run", f"{memory_metrics['avg_memory_ops_per_run']:.1f}")
+    m4.metric("Memory failure rate", f"{memory_metrics['memory_failure_rate']:.1%}")
 
     left, right = st.columns(2)
     with left:

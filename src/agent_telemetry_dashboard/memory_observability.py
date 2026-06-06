@@ -305,3 +305,23 @@ def memory_health_score(
         "conflict_count": len(conflicts),
         "avg_drift_score": avg_drift,
     }
+
+
+def memory_analytics_summary(df: pd.DataFrame) -> dict[str, float | int]:
+    """Integrate memory activity into dataframe-level telemetry analytics."""
+    if df.empty:
+        return {
+            "memory_active_runs": 0,
+            "memory_active_rate": 0.0,
+            "avg_memory_ops_per_run": 0.0,
+            "memory_failure_rate": 0.0,
+        }
+    memory_ops = df["memory_reads"] + df["memory_writes"]
+    active = df[memory_ops > 0]
+    memory_failures = int((active["status"] == "failed").sum()) if not active.empty else 0
+    return {
+        "memory_active_runs": int(len(active)),
+        "memory_active_rate": len(active) / len(df),
+        "avg_memory_ops_per_run": float(memory_ops.mean()),
+        "memory_failure_rate": memory_failures / len(active) if not active.empty else 0.0,
+    }

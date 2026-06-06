@@ -77,3 +77,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Observability Dashboard
 
 The Streamlit app includes a **Memory** tab that surfaces memory health, useful retrieval rate, average relevance, conflict count, memory operations by agent, and memory operations over time. Existing telemetry remains compatible; when explicit memory traces are not provided, the dashboard derives lightweight memory observability signals from existing `memory_reads`, `memory_writes`, confidence, status, agent, and task fields.
+
+## Memory Analytics Integration
+
+`memory_analytics_summary` adds memory-active run count, memory-active rate, average memory operations per run, and memory failure rate to the analytics layer. The Analytics tab now displays these memory-aware metrics next to existing aggregate telemetry analytics.
