@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 from pydantic import ValidationError
 
+from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.models import (
     AgentCommunicationEvent,
     AgentRegistryEntry,
@@ -18,6 +19,8 @@ from agent_telemetry_dashboard.multi_agent import (
     shared_memory_tracking,
     workflow_visualization_edges,
 )
+
+DATA = "data/sample_telemetry.json"
 
 
 def test_agent_registry_entry_validates_agent_metadata() -> None:
@@ -259,3 +262,31 @@ def test_orchestration_metrics_count_workflows_and_agents() -> None:
     assert metrics["workflows"] == 1
     assert metrics["agents"] == 2
     assert metrics["avg_agents_per_workflow"] == 2.0
+
+
+def test_multi_agent_helpers_support_existing_sample_data() -> None:
+    df = load_telemetry(DATA)
+
+    assert len(agent_hierarchy(df)) == len(df)
+    assert agent_relationship_graph(df)[0]["agent_name"].nunique() == df["agent_name"].nunique()
+    assert handoff_tracking(df).empty
+    assert shared_memory_tracking(df).empty
+    assert len(agent_utilization_metrics(df)) == df["agent_name"].nunique()
+    assert len(multi_agent_comparison(df)) == df["agent_name"].nunique()
+    assert orchestration_metrics(df)["workflows"] == 1
+
+
+def test_multi_agent_helpers_handle_empty_dataframes() -> None:
+    df = load_telemetry(DATA).iloc[0:0]
+    nodes, edges = agent_relationship_graph(df)
+
+    assert agent_hierarchy(df).empty
+    assert nodes.empty
+    assert edges.empty
+    assert communication_events_to_dataframe([]).empty
+    assert handoff_tracking(df).empty
+    assert shared_memory_tracking(df).empty
+    assert agent_utilization_metrics(df).empty
+    assert multi_agent_comparison(df).empty
+    assert workflow_visualization_edges(df).empty
+    assert orchestration_metrics(df)["agents"] == 0

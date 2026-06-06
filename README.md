@@ -69,7 +69,7 @@ See [`docs/telemetry_analytics.md`](docs/telemetry_analytics.md) for the analyti
 - Searchable run listing with dedicated status filtering, run metadata, run detail, run comparison, event, memory, tool-call, and run timeline views
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
 - Tabbed dashboard layout for overview, reliability, runs, analytics, per-agent observability, multi-agent comparison, workflow visualization, timeline, and raw data views
-- Pytest coverage for loading, validation, filtering, generation, and metrics
+- Pytest coverage for loading, validation, filtering, generation, metrics, analytics, exports, and multi-agent helpers
 - Parent-child hierarchy, relationship graph, communication event, handoff, and shared memory helpers, and agent utilization, orchestration metrics, and multi-agent analytics integration for multi-agent run relationships
 - Analytics export downloads for JSON summaries and run quality CSV
 - GitHub Actions CI
