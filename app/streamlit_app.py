@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from agent_telemetry_dashboard.explorer import run_listing
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
@@ -215,6 +216,12 @@ def render_timeline_tab(df: pd.DataFrame) -> None:
     )
 
 
+def render_runs_tab(df: pd.DataFrame) -> None:
+    st.subheader("Run listing")
+    st.caption("Browse individual agent runs before opening deeper session exploration views.")
+    st.dataframe(run_listing(df), use_container_width=True, hide_index=True)
+
+
 def render_data_tab(df: pd.DataFrame) -> None:
     st.subheader("Raw telemetry")
     st.dataframe(df.sort_values("timestamp", ascending=False), use_container_width=True)
@@ -236,13 +243,15 @@ def main() -> None:
         st.warning("No telemetry records match the selected filters.")
         return
 
-    overview, reliability, timeline, data = st.tabs(
-        ["Overview", "Reliability", "Run timeline", "Raw data"]
+    overview, reliability, runs, timeline, data = st.tabs(
+        ["Overview", "Reliability", "Runs", "Run timeline", "Raw data"]
     )
     with overview:
         render_overview_tab(filtered)
     with reliability:
         render_reliability_tab(filtered)
+    with runs:
+        render_runs_tab(filtered)
     with timeline:
         render_timeline_tab(filtered)
     with data:

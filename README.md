@@ -37,8 +37,9 @@ The dashboard is organized into four tabs:
 
 1. **Overview** — run status, tool calls, memory activity, and drift trends.
 2. **Reliability** — failure rate, retry totals, failed-run counts, confidence, and latency.
-3. **Run timeline** — task-level run timeline using start timestamp and latency.
-4. **Raw data** — filtered telemetry table for inspection and export workflows.
+3. **Runs** — compact run listing for session exploration.
+4. **Run timeline** — task-level run timeline using start timestamp and latency.
+5. **Raw data** — filtered telemetry table for inspection and export workflows.
 
 The sidebar lets you load a local telemetry file and filter by agent, status, task, date range, and minimum confidence.
 
@@ -60,7 +61,7 @@ The sidebar lets you load a local telemetry file and filter by agent, status, ta
   - Status-aware confidence distribution
   - Drift score over time
   - Retry count, failures, and failed runs per task
-- Run timeline view
+- Run listing and timeline views
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
 - Tabbed dashboard layout for overview, reliability, timeline, and raw data views
 - Pytest coverage for loading, validation, filtering, generation, and metrics
