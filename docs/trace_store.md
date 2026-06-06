@@ -39,3 +39,7 @@ When `data/datasets.json` contains registered datasets, the dashboard sidebar sh
 ## Memory Trace Persistence
 
 `memory_trace_to_stored_trace` converts memory retrieval, write, influence, and decision trace models into normalized `StoredTrace` records. The conversion preserves trace ID, run ID, timestamp, dataset ID, trace type, and the JSON-safe model payload.
+
+## Import-to-Store Pipeline
+
+`telemetry_dataframe_to_traces` converts validated dashboard telemetry rows into `run_summary` traces, and `import_dataframe_to_store` persists those traces through `TraceRepository`. This bridges the Phase 5 ingestion pipeline with persistent Phase 7 storage.
