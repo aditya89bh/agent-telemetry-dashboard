@@ -108,3 +108,24 @@ def memory_event_timeline(run: pd.Series) -> pd.DataFrame:
         },
     ]
     return pd.DataFrame(rows).sort_values("event_time").reset_index(drop=True)
+
+
+def tool_call_timeline(run: pd.Series) -> pd.DataFrame:
+    """Return a compact tool-call timeline for a selected run."""
+    start = run["timestamp"]
+    latency = max(int(run["latency_ms"]), 1)
+    tool_calls = int(run["tool_calls"])
+    if tool_calls == 0:
+        return pd.DataFrame(columns=["event_time", "tool_call_index", "description"])
+
+    rows = []
+    for index in range(tool_calls):
+        offset = max((latency * (index + 1)) // (tool_calls + 1), 1)
+        rows.append(
+            {
+                "event_time": start + pd.to_timedelta(offset, unit="ms"),
+                "tool_call_index": index + 1,
+                "description": f"Tool call {index + 1} of {tool_calls}",
+            }
+        )
+    return pd.DataFrame(rows)

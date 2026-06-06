@@ -14,6 +14,7 @@ from agent_telemetry_dashboard.explorer import (
     run_detail,
     run_event_timeline,
     search_runs,
+    tool_call_timeline,
 )
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
@@ -283,6 +284,19 @@ def render_runs_tab(df: pd.DataFrame) -> None:
             x="event_time",
             y="count",
             color="event_type",
+            hover_data=["description"],
+        ),
+        use_container_width=True,
+    )
+
+    st.subheader("Tool call timeline")
+    tool_events = tool_call_timeline(detail)
+    st.plotly_chart(
+        px.scatter(
+            tool_events,
+            x="event_time",
+            y="tool_call_index",
+            color="tool_call_index",
             hover_data=["description"],
         ),
         use_container_width=True,

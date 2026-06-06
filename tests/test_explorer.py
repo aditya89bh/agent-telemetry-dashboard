@@ -8,6 +8,7 @@ from agent_telemetry_dashboard.explorer import (
     run_event_timeline,
     run_listing,
     search_runs,
+    tool_call_timeline,
 )
 from agent_telemetry_dashboard.loader import load_telemetry
 
@@ -66,3 +67,12 @@ def test_memory_event_timeline_contains_read_and_write_counts() -> None:
 
     assert set(timeline["event_type"]) == {"memory_reads", "memory_writes"}
     assert timeline["count"].sum() == detail["memory_reads"] + detail["memory_writes"]
+
+
+def test_tool_call_timeline_has_one_row_per_tool_call() -> None:
+    df = load_telemetry(DATA)
+    detail = run_detail(df, "run-001")
+    timeline = tool_call_timeline(detail)
+
+    assert len(timeline) == detail["tool_calls"]
+    assert timeline["event_time"].is_monotonic_increasing
