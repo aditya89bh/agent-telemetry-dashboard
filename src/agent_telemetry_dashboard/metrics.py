@@ -13,6 +13,9 @@ def overview_metrics(df: pd.DataFrame) -> dict[str, float | int]:
             "failure_rate": 0.0,
             "avg_confidence": 0.0,
             "avg_drift": 0.0,
+            "avg_latency_ms": 0.0,
+            "failed_runs": 0,
+            "warning_runs": 0,
             "total_tool_calls": 0,
             "total_memory_ops": 0,
         }
@@ -21,6 +24,9 @@ def overview_metrics(df: pd.DataFrame) -> dict[str, float | int]:
         "failure_rate": float((df["status"] == "failed").mean()),
         "avg_confidence": float(df["confidence"].mean()),
         "avg_drift": float(df["drift_score"].mean()),
+        "avg_latency_ms": float(df["latency_ms"].mean()),
+        "failed_runs": int(df["status"].eq("failed").sum()),
+        "warning_runs": int(df["status"].eq("warning").sum()),
         "total_tool_calls": int(df["tool_calls"].sum()),
         "total_memory_ops": int(df["memory_reads"].sum() + df["memory_writes"].sum()),
     }

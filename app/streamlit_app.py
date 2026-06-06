@@ -72,10 +72,10 @@ def main() -> None:
     metrics = overview_metrics(filtered)
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Runs", metrics["runs"])
-    c2.metric("Failure rate", f"{metrics['failure_rate']:.1%}")
+    c2.metric("Failed runs", metrics["failed_runs"], f"{metrics['failure_rate']:.1%}")
     c3.metric("Avg confidence", f"{metrics['avg_confidence']:.2f}")
     c4.metric("Avg drift", f"{metrics['avg_drift']:.2f}")
-    c5.metric("Tool calls", metrics["total_tool_calls"])
+    c5.metric("Avg latency", f"{metrics['avg_latency_ms']:.0f} ms")
     c6.metric("Memory ops", metrics["total_memory_ops"])
 
     if filtered.empty:

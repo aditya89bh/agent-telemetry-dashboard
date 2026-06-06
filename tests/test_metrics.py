@@ -21,6 +21,9 @@ def test_overview_metrics_are_deterministic() -> None:
     assert metrics["total_tool_calls"] == int(df["tool_calls"].sum())
     assert metrics["total_memory_ops"] == int(df["memory_reads"].sum() + df["memory_writes"].sum())
     assert metrics["failure_rate"] == (df["status"] == "failed").mean()
+    assert metrics["failed_runs"] == int(df["status"].eq("failed").sum())
+    assert metrics["warning_runs"] == int(df["status"].eq("warning").sum())
+    assert metrics["avg_latency_ms"] == float(df["latency_ms"].mean())
 
 
 def test_memory_ops_over_time_groups_by_day() -> None:

@@ -32,6 +32,7 @@ Agent telemetry makes behavior observable:
 - Deterministic sample telemetry generator utility
 - Deterministic Pandas metrics
 - Plotly charts for:
+  - Summary metric cards for run count, failures, confidence, drift, latency, and memory operations
   - Tool calls per run
   - Memory reads/writes over time
   - Failure rate
