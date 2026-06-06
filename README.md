@@ -4,7 +4,15 @@ A polished, lightweight Streamlit dashboard for inspecting telemetry from memory
 
 It helps answer the questions agent builders ask after a run: **What tools were called? Did memory help or drift? Where did failures and retries happen? How confident was the agent over time?**
 
+## Screenshots
+
 ![Dashboard screenshot placeholder](docs/screenshot-placeholder.svg)
+
+The repository currently includes a screenshot placeholder so the README layout is ready for a real capture. After launching the app, replace `docs/screenshot-placeholder.svg` with a dashboard screenshot or add additional images such as:
+
+- `docs/screenshots/overview.png`
+- `docs/screenshots/reliability.png`
+- `docs/screenshots/timeline.png`
 
 ## Problem statement
 
@@ -22,6 +30,17 @@ Agent telemetry makes behavior observable:
 - **Confidence distributions** help spot low-certainty tasks before they reach users.
 - **Drift scores** make long-running agent behavior easier to monitor.
 - **Timelines** turn scattered events into a run-level story.
+
+## Dashboard overview
+
+The dashboard is organized into four tabs:
+
+1. **Overview** — run status, tool calls, memory activity, and drift trends.
+2. **Reliability** — failure rate, retry totals, failed-run counts, confidence, and latency.
+3. **Run timeline** — task-level run timeline using start timestamp and latency.
+4. **Raw data** — filtered telemetry table for inspection and export workflows.
+
+The sidebar lets you load a local telemetry file and filter by agent, status, task, date range, and minimum confidence.
 
 ## Features
 
@@ -44,13 +63,38 @@ Agent telemetry makes behavior observable:
 - Run timeline view
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
 - Tabbed dashboard layout for overview, reliability, timeline, and raw data views
-- Pytest coverage for loading and metrics
+- Pytest coverage for loading, validation, filtering, generation, and metrics
 - GitHub Actions CI
+
+## Feature descriptions
+
+### Strict telemetry validation
+
+Telemetry records are validated with Pydantic before being converted into dataframes. The loader rejects unknown fields, invalid score ranges, negative counts, unsupported schema versions, and contradictory summaries such as successful runs with failures.
+
+### Local loading
+
+The app loads local JSON and CSV files. It also supports versioned JSON envelopes:
+
+```json
+{
+  "schema_version": "1.0",
+  "records": []
+}
+```
+
+### Deterministic metrics
+
+Metrics are computed with Pandas and do not depend on external services. This keeps tests stable and makes the project easy to run in CI.
+
+### Sample telemetry generation
+
+The `generate-agent-telemetry` command creates deterministic sample telemetry for demos, screenshots, and local experimentation.
 
 ## Quickstart
 
 ```bash
-git clone https://github.com/<your-username>/agent-telemetry-dashboard.git
+git clone https://github.com/aditya89bh/agent-telemetry-dashboard.git
 cd agent-telemetry-dashboard
 python -m venv .venv
 source .venv/bin/activate
@@ -81,6 +125,32 @@ For Streamlit Community Cloud or simple deployments:
 ```bash
 pip install -r requirements.txt
 streamlit run app/streamlit_app.py
+```
+
+## Usage examples
+
+Load the bundled JSON dataset:
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+Load the bundled CSV dataset by changing the sidebar telemetry file path to:
+
+```text
+data/sample_telemetry.csv
+```
+
+Generate a larger deterministic demo dataset:
+
+```bash
+generate-agent-telemetry --count 100 --json data/sample_telemetry.json --csv data/sample_telemetry.csv
+```
+
+Install the package locally for development:
+
+```bash
+pip install -e .[dev]
 ```
 
 ## Telemetry schema
@@ -116,6 +186,7 @@ The loader defaults records to schema version `1.0` and also supports JSON envel
 - Evaluation aid for memory-agent experiments
 - Starter schema for tool-use telemetry
 - Teaching example for Streamlit + Pandas + Plotly dashboards
+- Lightweight QA surface for comparing agent run behavior across experiments
 
 ## Roadmap
 
