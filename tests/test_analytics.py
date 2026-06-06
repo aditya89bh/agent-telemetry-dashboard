@@ -3,6 +3,7 @@ from pathlib import Path
 from agent_telemetry_dashboard.analytics import (
     agent_performance_scores,
     aggregate_metrics,
+    failure_rates,
     success_rates,
 )
 from agent_telemetry_dashboard.loader import load_telemetry
@@ -38,3 +39,18 @@ def test_success_rates_group_by_agent() -> None:
     assert set(rates.columns) == {"agent_name", "runs", "success_runs", "success_rate"}
     assert rates["success_rate"].between(0, 1).all()
     assert rates["success_runs"].sum() == int(df["status"].eq("success").sum())
+
+
+def test_failure_rates_group_by_agent() -> None:
+    df = load_telemetry(DATA)
+    rates = failure_rates(df)
+
+    assert set(rates.columns) == {
+        "agent_name",
+        "runs",
+        "failed_runs",
+        "failure_rate",
+        "total_failures",
+    }
+    assert rates["failure_rate"].between(0, 1).all()
+    assert rates["failed_runs"].sum() == int(df["status"].eq("failed").sum())

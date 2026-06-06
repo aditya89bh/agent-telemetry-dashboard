@@ -80,3 +80,17 @@ def success_rates(df: pd.DataFrame, by: str = "agent_name") -> pd.DataFrame:
     )
     grouped["success_rate"] = grouped["success_runs"] / grouped["runs"]
     return grouped.sort_values("success_rate", ascending=False).reset_index(drop=True)
+
+
+def failure_rates(df: pd.DataFrame, by: str = "agent_name") -> pd.DataFrame:
+    """Calculate failure rates overall or grouped by a telemetry column."""
+    columns = [by, "runs", "failed_runs", "failure_rate", "total_failures"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    grouped = df.groupby(by, as_index=False).agg(
+        runs=("run_id", "count"),
+        failed_runs=("status", lambda status: int(status.eq("failed").sum())),
+        total_failures=("failures", "sum"),
+    )
+    grouped["failure_rate"] = grouped["failed_runs"] / grouped["runs"]
+    return grouped.sort_values("failure_rate", ascending=False).reset_index(drop=True)
