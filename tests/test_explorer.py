@@ -2,6 +2,7 @@ from pathlib import Path
 
 from agent_telemetry_dashboard.explorer import (
     RUN_LIST_COLUMNS,
+    compare_runs,
     confidence_evolution,
     drift_evolution,
     failure_inspection,
@@ -126,3 +127,11 @@ def test_retry_inspection_reports_retry_ratio() -> None:
 
     assert inspection["has_retries"] is True
     assert inspection["retry_to_failure_ratio"] > 0
+
+
+def test_compare_runs_returns_metric_deltas() -> None:
+    df = load_telemetry(DATA)
+    comparison = compare_runs(run_detail(df, "run-001"), run_detail(df, "run-002"))
+
+    assert {"metric", "run-001", "run-002", "delta"} == set(comparison.columns)
+    assert "confidence" in set(comparison["metric"])

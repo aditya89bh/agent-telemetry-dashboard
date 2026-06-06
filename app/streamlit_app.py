@@ -9,6 +9,7 @@ import plotly.express as px
 import streamlit as st
 
 from agent_telemetry_dashboard.explorer import (
+    compare_runs,
     confidence_evolution,
     drift_evolution,
     failure_inspection,
@@ -247,6 +248,16 @@ def render_runs_tab(df: pd.DataFrame) -> None:
     st.subheader("Run detail")
     selected_run = st.selectbox("Select run", visible_runs["run_id"].tolist())
     detail = run_detail(df, selected_run)
+    comparison_run = st.selectbox("Compare against", visible_runs["run_id"].tolist(), index=0)
+    if comparison_run != selected_run:
+        st.subheader("Run comparison")
+        comparison = compare_runs(detail, run_detail(df, comparison_run))
+        st.dataframe(comparison, use_container_width=True, hide_index=True)
+        st.plotly_chart(
+            px.bar(comparison, x="metric", y="delta", title="Comparison delta"),
+            use_container_width=True,
+        )
+
     st.subheader("Run metadata")
     metadata = run_metadata(detail)
     meta_cols = st.columns(4)

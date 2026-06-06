@@ -189,3 +189,30 @@ def retry_inspection(run: pd.Series) -> dict[str, object]:
             "Inspect failed tool/memory step" if retries else "No retry action needed"
         ),
     }
+
+
+def compare_runs(left: pd.Series, right: pd.Series) -> pd.DataFrame:
+    """Compare two runs across core numeric telemetry fields."""
+    fields = [
+        "memory_reads",
+        "memory_writes",
+        "tool_calls",
+        "failures",
+        "retries",
+        "confidence",
+        "drift_score",
+        "latency_ms",
+    ]
+    rows = []
+    for field in fields:
+        left_value = left[field]
+        right_value = right[field]
+        rows.append(
+            {
+                "metric": field,
+                str(left["run_id"]): left_value,
+                str(right["run_id"]): right_value,
+                "delta": right_value - left_value,
+            }
+        )
+    return pd.DataFrame(rows)
