@@ -37,6 +37,15 @@ class IngestionValidationReport:
         return not self.errors and self.total_records == self.valid_records
 
 
+class IngestionError(ValueError):
+    """User-facing ingestion failure with safe remediation context."""
+
+    def __init__(self, message: str, *, source_name: str, errors: tuple[str, ...] = ()) -> None:
+        super().__init__(message)
+        self.source_name = source_name
+        self.errors = errors
+
+
 def validate_ingestion_records(raw_records: list[Any]) -> IngestionValidationReport:
     """Validate raw telemetry records and collect row-level validation errors."""
     errors: list[str] = []
@@ -57,8 +66,20 @@ def validate_ingestion_records(raw_records: list[Any]) -> IngestionValidationRep
 
 def ingest_json_upload(content: bytes, source_name: str = "upload.json") -> IngestionResult:
     """Parse a JSON upload into the dashboard telemetry dataframe format."""
-    payload = json.loads(content.decode("utf-8"))
-    raw_records = _records_from_json_payload(payload)
+    try:
+        payload = json.loads(content.decode("utf-8"))
+        raw_records = _records_from_json_payload(payload)
+    except Exception as exc:  # noqa: BLE001 - convert parser failures to user-facing errors.
+        raise IngestionError(
+            "Could not parse JSON telemetry upload", source_name=source_name
+        ) from exc
+    report = validate_ingestion_records(raw_records)
+    if not report.is_valid:
+        raise IngestionError(
+            "JSON telemetry upload failed validation",
+            source_name=source_name,
+            errors=report.errors,
+        )
     records = [TelemetryRecord.model_validate(item) for item in raw_records]
     dataframe = records_to_dataframe(records)
     return IngestionResult(
@@ -71,9 +92,21 @@ def ingest_json_upload(content: bytes, source_name: str = "upload.json") -> Inge
 
 def ingest_csv_upload(content: bytes, source_name: str = "upload.csv") -> IngestionResult:
     """Parse a CSV upload into the dashboard telemetry dataframe format."""
-    raw_records = pd.read_csv(BytesIO(content), dtype={"schema_version": "string"}).to_dict(
-        orient="records"
-    )
+    try:
+        raw_records = pd.read_csv(BytesIO(content), dtype={"schema_version": "string"}).to_dict(
+            orient="records"
+        )
+    except Exception as exc:  # noqa: BLE001 - convert parser failures to user-facing errors.
+        raise IngestionError(
+            "Could not parse CSV telemetry upload", source_name=source_name
+        ) from exc
+    report = validate_ingestion_records(raw_records)
+    if not report.is_valid:
+        raise IngestionError(
+            "CSV telemetry upload failed validation",
+            source_name=source_name,
+            errors=report.errors,
+        )
     records = [TelemetryRecord.model_validate(item) for item in raw_records]
     dataframe = records_to_dataframe(records)
     return IngestionResult(
@@ -87,16 +120,29 @@ def ingest_csv_upload(content: bytes, source_name: str = "upload.csv") -> Ingest
 def ingest_zip_upload(content: bytes, source_name: str = "upload.zip") -> IngestionResult:
     """Parse all supported telemetry files from a ZIP upload."""
     frames: list[pd.DataFrame] = []
-    with zipfile.ZipFile(BytesIO(content)) as archive:
-        for member in sorted(archive.namelist()):
-            if member.endswith("/"):
-                continue
-            suffix = member.rsplit(".", maxsplit=1)[-1].lower()
-            member_content = archive.read(member)
-            if suffix == "json":
-                frames.append(ingest_json_upload(member_content, source_name=member).dataframe)
-            elif suffix == "csv":
-                frames.append(ingest_csv_upload(member_content, source_name=member).dataframe)
+    try:
+        with zipfile.ZipFile(BytesIO(content)) as archive:
+            for member in sorted(archive.namelist()):
+                if member.endswith("/"):
+                    continue
+                suffix = member.rsplit(".", maxsplit=1)[-1].lower()
+                member_content = archive.read(member)
+                if suffix == "json":
+                    frames.append(ingest_json_upload(member_content, source_name=member).dataframe)
+                elif suffix == "csv":
+                    frames.append(ingest_csv_upload(member_content, source_name=member).dataframe)
+    except IngestionError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - convert parser failures to user-facing errors.
+        raise IngestionError(
+            "Could not parse ZIP telemetry upload", source_name=source_name
+        ) from exc
+
+    if not frames:
+        raise IngestionError(
+            "ZIP telemetry upload did not contain supported JSON or CSV files",
+            source_name=source_name,
+        )
 
     dataframe = pd.concat(frames, ignore_index=True) if frames else records_to_dataframe([])
     if not dataframe.empty:

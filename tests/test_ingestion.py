@@ -7,6 +7,7 @@ import zipfile
 from io import BytesIO
 
 from agent_telemetry_dashboard.ingestion import (
+    IngestionError,
     ingest_csv_upload,
     ingest_json_upload,
     ingest_zip_upload,
@@ -85,3 +86,16 @@ def test_validate_ingestion_records_reports_row_errors() -> None:
     assert report.valid_records == 1
     assert not report.is_valid
     assert "record 2" in report.errors[0]
+
+
+def test_ingest_json_upload_raises_user_facing_error() -> None:
+    invalid = valid_record() | {"status": "failed", "failures": 0}
+
+    try:
+        ingest_json_upload(json.dumps([invalid]).encode("utf-8"), source_name="bad.json")
+    except IngestionError as exc:
+        assert exc.source_name == "bad.json"
+        assert "validation" in str(exc)
+        assert exc.errors
+    else:  # pragma: no cover - explicit assertion path for readability.
+        raise AssertionError("Expected IngestionError")

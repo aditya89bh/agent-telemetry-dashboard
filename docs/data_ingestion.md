@@ -31,4 +31,8 @@ ZIP uploads can bundle multiple `.json` and `.csv` telemetry files. The ingestio
 
 `validate_ingestion_records` checks raw records before dataframe conversion and returns a report with total records, valid records, and row-level errors. This gives import flows a stable validation contract without changing the existing local telemetry loader.
 
+## Error Handling
+
+Upload parsing and validation failures raise `IngestionError`, a user-facing exception that preserves the source filename and row-level validation errors. The upload page catches this exception and displays actionable error details instead of crashing the dashboard.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

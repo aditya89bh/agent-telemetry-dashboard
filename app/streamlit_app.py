@@ -39,6 +39,7 @@ from agent_telemetry_dashboard.explorer import (
 from agent_telemetry_dashboard.export import analytics_export_json, analytics_quality_csv
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.ingestion import (
+    IngestionError,
     ingest_csv_upload,
     ingest_json_upload,
     ingest_zip_upload,
@@ -423,18 +424,24 @@ def render_upload_tab() -> None:
             "content_type": uploaded_file.type or "unknown",
         }
     )
-    if uploaded_file.name.lower().endswith(".json"):
-        result = ingest_json_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
-        st.metric("Imported JSON records", result.records)
-        st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
-    elif uploaded_file.name.lower().endswith(".csv"):
-        result = ingest_csv_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
-        st.metric("Imported CSV records", result.records)
-        st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
-    elif uploaded_file.name.lower().endswith(".zip"):
-        result = ingest_zip_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
-        st.metric("Imported ZIP records", result.records)
-        st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
+    try:
+        if uploaded_file.name.lower().endswith(".json"):
+            result = ingest_json_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
+        elif uploaded_file.name.lower().endswith(".csv"):
+            result = ingest_csv_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
+        elif uploaded_file.name.lower().endswith(".zip"):
+            result = ingest_zip_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
+        else:
+            st.warning("Unsupported upload format.")
+            return
+    except IngestionError as exc:
+        st.error(str(exc))
+        for error in exc.errors[:10]:
+            st.code(error)
+        return
+
+    st.metric(f"Imported {result.format.upper()} records", result.records)
+    st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
 
 
 def render_analytics_tab(df: pd.DataFrame) -> None:
