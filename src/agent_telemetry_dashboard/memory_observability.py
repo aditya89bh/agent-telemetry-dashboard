@@ -104,3 +104,29 @@ def detect_memory_conflicts(writes: list[MemoryWriteTrace]) -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
     conflicts["conflict_score"] = conflicts["distinct_summaries"] / conflicts["write_events"]
     return conflicts.sort_values("conflict_score", ascending=False).reset_index(drop=True)
+
+
+def memory_drift_metrics(writes: list[MemoryWriteTrace]) -> pd.DataFrame:
+    """Estimate per-memory drift from write history and importance changes."""
+    columns = ["memory_id", "versions", "summary_changes", "avg_importance", "drift_score"]
+    if not writes:
+        return pd.DataFrame(columns=columns)
+    df = pd.DataFrame([trace.model_dump() for trace in writes])
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
+    df["summary_key"] = df["new_summary"].str.strip().str.lower()
+    grouped = (
+        df.sort_values("timestamp")
+        .groupby("memory_id", as_index=False)
+        .agg(
+            versions=("trace_id", "count"),
+            summary_changes=("summary_key", "nunique"),
+            avg_importance=("importance_score", "mean"),
+        )
+    )
+    grouped["drift_score"] = grouped.apply(
+        lambda row: 0.0
+        if row["versions"] <= 1
+        else min(1.0, (row["summary_changes"] - 1) / (row["versions"] - 1)),
+        axis=1,
+    )
+    return grouped.sort_values("drift_score", ascending=False).reset_index(drop=True)

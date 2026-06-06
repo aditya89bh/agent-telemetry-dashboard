@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agent_telemetry_dashboard.memory_observability import (
     detect_memory_conflicts,
+    memory_drift_metrics,
     memory_effectiveness_metrics,
     memory_influence_dataframe,
     memory_influence_scores,
@@ -190,3 +191,30 @@ def test_detect_memory_conflicts_flags_divergent_summaries() -> None:
     assert conflicts.loc[0, "memory_id"] == "mem-1"
     assert conflicts.loc[0, "distinct_summaries"] == 2
     assert conflicts.loc[0, "conflict_score"] == 1.0
+
+
+def test_memory_drift_metrics_score_summary_changes() -> None:
+    writes = [
+        MemoryWriteTrace(
+            trace_id="w1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:00:00",
+            new_summary="Prefers concise replies.",
+            importance_score=0.8,
+        ),
+        MemoryWriteTrace(
+            trace_id="w2",
+            run_id="run-2",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:01:00",
+            new_summary="Prefers detailed replies.",
+            importance_score=0.6,
+        ),
+    ]
+
+    drift = memory_drift_metrics(writes)
+
+    assert drift.loc[0, "memory_id"] == "mem-1"
+    assert drift.loc[0, "versions"] == 2
+    assert drift.loc[0, "drift_score"] == 1.0
