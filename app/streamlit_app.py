@@ -396,6 +396,30 @@ def render_data_tab(df: pd.DataFrame) -> None:
     st.dataframe(df.sort_values("timestamp", ascending=False), use_container_width=True)
 
 
+def render_upload_tab() -> None:
+    st.subheader("Telemetry upload")
+    st.caption(
+        "Import external agent telemetry into the dashboard. "
+        "Format-specific ingestion support is added incrementally in Phase 5."
+    )
+    uploaded_file = st.file_uploader(
+        "Upload telemetry file",
+        type=["json", "csv", "zip"],
+        help="Use this page to stage telemetry exported by external agent systems.",
+    )
+    if uploaded_file is None:
+        st.info("Choose a telemetry file to begin an import.")
+        return
+    st.success(f"Selected `{uploaded_file.name}` for import preview.")
+    st.write(
+        {
+            "filename": uploaded_file.name,
+            "size_bytes": uploaded_file.size,
+            "content_type": uploaded_file.type or "unknown",
+        }
+    )
+
+
 def render_analytics_tab(df: pd.DataFrame) -> None:
     st.subheader("Telemetry analytics")
     export_left, export_right = st.columns(2)
@@ -547,8 +571,17 @@ def main() -> None:
         st.warning("No telemetry records match the selected filters.")
         return
 
-    overview, reliability, runs, analytics, agents, timeline, data = st.tabs(
-        ["Overview", "Reliability", "Runs", "Analytics", "Agents", "Run timeline", "Raw data"]
+    overview, reliability, runs, analytics, agents, upload, timeline, data = st.tabs(
+        [
+            "Overview",
+            "Reliability",
+            "Runs",
+            "Analytics",
+            "Agents",
+            "Upload",
+            "Run timeline",
+            "Raw data",
+        ]
     )
     with overview:
         render_overview_tab(filtered)
@@ -560,6 +593,8 @@ def main() -> None:
         render_analytics_tab(filtered)
     with agents:
         render_agents_tab(filtered)
+    with upload:
+        render_upload_tab()
     with timeline:
         render_timeline_tab(filtered)
     with data:
