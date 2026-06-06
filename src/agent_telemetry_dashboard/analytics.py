@@ -41,3 +41,29 @@ def aggregate_metrics(df: pd.DataFrame) -> dict[str, float | int]:
         "avg_drift_score": float(df["drift_score"].mean()),
         "avg_latency_ms": float(df["latency_ms"].mean()),
     }
+
+
+def agent_performance_scores(df: pd.DataFrame) -> pd.DataFrame:
+    """Score each agent from 0-100 using success, confidence, drift, and failures."""
+    columns = ["agent_name", "runs", "success_rate", "avg_confidence", "avg_drift", "score"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+
+    grouped = df.groupby("agent_name")
+    scores = pd.DataFrame(
+        {
+            "runs": grouped.size(),
+            "success_rate": grouped["status"].apply(lambda status: status.eq("success").mean()),
+            "avg_confidence": grouped["confidence"].mean(),
+            "avg_drift": grouped["drift_score"].mean(),
+            "failure_rate": grouped["status"].apply(lambda status: status.eq("failed").mean()),
+        }
+    ).reset_index()
+    raw_score = (
+        scores["success_rate"] * 45
+        + scores["avg_confidence"] * 35
+        + (1 - scores["avg_drift"]) * 15
+        + (1 - scores["failure_rate"]) * 5
+    )
+    scores["score"] = raw_score.round(2).clip(0, 100)
+    return scores[columns].sort_values("score", ascending=False).reset_index(drop=True)
