@@ -10,6 +10,7 @@ from agent_telemetry_dashboard.ingestion import (
     ingest_csv_upload,
     ingest_json_upload,
     ingest_zip_upload,
+    validate_ingestion_records,
 )
 
 
@@ -73,3 +74,14 @@ def test_ingest_zip_upload_combines_supported_files() -> None:
     assert result.format == "zip"
     assert result.records == 1
     assert result.dataframe.loc[0, "run_id"] == "run-json-1"
+
+
+def test_validate_ingestion_records_reports_row_errors() -> None:
+    invalid = valid_record() | {"status": "failed", "failures": 0}
+
+    report = validate_ingestion_records([valid_record(), invalid])
+
+    assert report.total_records == 2
+    assert report.valid_records == 1
+    assert not report.is_valid
+    assert "record 2" in report.errors[0]

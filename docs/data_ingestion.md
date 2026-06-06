@@ -27,4 +27,8 @@ CSV uploads use the same columns as `data/sample_telemetry.csv`. Rows are valida
 
 ZIP uploads can bundle multiple `.json` and `.csv` telemetry files. The ingestion layer reads supported files from the archive, ignores unrelated files, validates every record, and combines the imported runs into one timestamp-sorted dataframe.
 
+## Validation Pipeline
+
+`validate_ingestion_records` checks raw records before dataframe conversion and returns a report with total records, valid records, and row-level errors. This gives import flows a stable validation contract without changing the existing local telemetry loader.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

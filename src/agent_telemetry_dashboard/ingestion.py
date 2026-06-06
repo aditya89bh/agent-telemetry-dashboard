@@ -6,6 +6,7 @@ import json
 import zipfile
 from dataclasses import dataclass
 from io import BytesIO
+from typing import Any
 
 import pandas as pd
 
@@ -21,6 +22,37 @@ class IngestionResult:
     format: str
     records: int
     dataframe: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class IngestionValidationReport:
+    """Validation summary for raw records before dataframe conversion."""
+
+    total_records: int
+    valid_records: int
+    errors: tuple[str, ...]
+
+    @property
+    def is_valid(self) -> bool:
+        return not self.errors and self.total_records == self.valid_records
+
+
+def validate_ingestion_records(raw_records: list[Any]) -> IngestionValidationReport:
+    """Validate raw telemetry records and collect row-level validation errors."""
+    errors: list[str] = []
+    valid_records = 0
+    for index, item in enumerate(raw_records, start=1):
+        try:
+            TelemetryRecord.model_validate(item)
+        except Exception as exc:  # noqa: BLE001 - collect validation errors for users.
+            errors.append(f"record {index}: {exc}")
+        else:
+            valid_records += 1
+    return IngestionValidationReport(
+        total_records=len(raw_records),
+        valid_records=valid_records,
+        errors=tuple(errors),
+    )
 
 
 def ingest_json_upload(content: bytes, source_name: str = "upload.json") -> IngestionResult:
