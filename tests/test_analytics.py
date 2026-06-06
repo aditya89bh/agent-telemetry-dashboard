@@ -10,6 +10,7 @@ from agent_telemetry_dashboard.analytics import (
     latency_trend,
     memory_usage_trend,
     retry_effectiveness_metrics,
+    run_quality_scores,
     success_rates,
     tool_reliability_metrics,
 )
@@ -147,3 +148,12 @@ def test_retry_effectiveness_metrics_are_bounded() -> None:
         "retry_effectiveness",
     }
     assert effectiveness["retry_effectiveness"].between(0, 1).all()
+
+
+def test_run_quality_scores_are_bounded_and_ranked() -> None:
+    df = load_telemetry(DATA)
+    scores = run_quality_scores(df)
+
+    assert set(scores.columns) == {"run_id", "agent_name", "task_name", "status", "quality_score"}
+    assert scores["quality_score"].between(0, 100).all()
+    assert scores["quality_score"].is_monotonic_decreasing

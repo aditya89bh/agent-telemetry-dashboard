@@ -245,3 +245,23 @@ def retry_effectiveness_metrics(df: pd.DataFrame, by: str = "agent_name") -> pd.
     )
     grouped["retry_effectiveness"] = grouped["recovered_runs"] / grouped["retried_runs"]
     return grouped.sort_values("retry_effectiveness", ascending=False).reset_index(drop=True)
+
+
+def run_quality_scores(df: pd.DataFrame) -> pd.DataFrame:
+    """Score individual run quality from confidence, drift, failures, retries, and latency."""
+    columns = ["run_id", "agent_name", "task_name", "status", "quality_score"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    max_latency = max(float(df["latency_ms"].max()), 1.0)
+    scored = df.copy()
+    latency_penalty = scored["latency_ms"] / max_latency
+    scored["quality_score"] = (
+        scored["confidence"] * 40
+        + (1 - scored["drift_score"]) * 25
+        + (1 - latency_penalty) * 10
+        + scored["status"].map({"success": 15, "warning": 8, "failed": 0})
+        + (1 - (scored["retries"] / max(scored["retries"].max(), 1))) * 5
+        + (1 - (scored["failures"] / max(scored["failures"].max(), 1))) * 5
+    ).round(2)
+    scored["quality_score"] = scored["quality_score"].clip(0, 100)
+    return scored[columns].sort_values("quality_score", ascending=False).reset_index(drop=True)
