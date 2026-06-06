@@ -15,3 +15,7 @@ The SDK is intentionally small and local-first. It does not require a server, AP
 ## Memory Trace Emitter
 
 `TelemetryClient.emit_memory_trace(trace)` accepts memory retrieval, write, influence, and decision trace models and persists them as normalized trace records. The emitter preserves the original trace ID and timestamp.
+
+## Tool Call Emitter
+
+`TelemetryClient.emit_tool_call(run_id, tool_name, status, latency_ms, metadata)` records tool usage with status, latency, and optional metadata. Tool traces use trace type `tool_call`.

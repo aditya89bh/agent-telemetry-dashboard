@@ -85,3 +85,23 @@ class TelemetryClient:
             timestamp=trace.timestamp.isoformat(),
         )
         return self.repository.save(stored)
+
+    def emit_tool_call(
+        self,
+        run_id: str,
+        tool_name: str,
+        status: str = "success",
+        latency_ms: int = 0,
+        metadata: dict[str, object] | None = None,
+    ) -> StoredTrace:
+        """Emit a tool-call telemetry trace."""
+        return self.emit(
+            trace_type="tool_call",
+            run_id=run_id,
+            payload={
+                "tool_name": tool_name,
+                "status": status,
+                "latency_ms": latency_ms,
+                "metadata": metadata or {},
+            },
+        )
