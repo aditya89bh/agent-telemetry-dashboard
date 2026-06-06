@@ -176,3 +176,39 @@ def memory_usage_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
     )
     trend["memory_ops"] = trend["memory_reads"] + trend["memory_writes"]
     return trend[columns]
+
+
+def detect_anomalies(
+    df: pd.DataFrame,
+    *,
+    confidence_floor: float = 0.65,
+    drift_ceiling: float = 0.55,
+    retry_ceiling: int = 2,
+) -> pd.DataFrame:
+    """Flag deterministic telemetry anomalies using simple threshold rules."""
+    columns = ["run_id", "agent_name", "timestamp", "rule", "severity", "value"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+
+    rows: list[dict[str, object]] = []
+    for row in df.itertuples(index=False):
+        if row.confidence < confidence_floor:
+            rows.append(_anomaly_row(row, "low_confidence", "medium", row.confidence))
+        if row.drift_score > drift_ceiling:
+            rows.append(_anomaly_row(row, "high_drift", "medium", row.drift_score))
+        if row.retries > retry_ceiling:
+            rows.append(_anomaly_row(row, "retry_spike", "high", row.retries))
+        if row.status == "failed":
+            rows.append(_anomaly_row(row, "failed_run", "high", row.failures))
+    return pd.DataFrame(rows, columns=columns)
+
+
+def _anomaly_row(row: object, rule: str, severity: str, value: float | int) -> dict[str, object]:
+    return {
+        "run_id": row.run_id,
+        "agent_name": row.agent_name,
+        "timestamp": row.timestamp,
+        "rule": rule,
+        "severity": severity,
+        "value": value,
+    }

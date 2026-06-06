@@ -4,6 +4,7 @@ from agent_telemetry_dashboard.analytics import (
     agent_performance_scores,
     aggregate_metrics,
     confidence_trend,
+    detect_anomalies,
     drift_trend,
     failure_rates,
     latency_trend,
@@ -100,3 +101,19 @@ def test_memory_usage_trend_sums_memory_ops() -> None:
     assert set(trend.columns) == {"period", "memory_reads", "memory_writes", "memory_ops", "runs"}
     assert trend["memory_reads"].sum() == int(df["memory_reads"].sum())
     assert trend["memory_writes"].sum() == int(df["memory_writes"].sum())
+
+
+def test_detect_anomalies_flags_failed_runs() -> None:
+    df = load_telemetry(DATA)
+    anomalies = detect_anomalies(df)
+
+    assert set(anomalies.columns) == {
+        "run_id",
+        "agent_name",
+        "timestamp",
+        "rule",
+        "severity",
+        "value",
+    }
+    assert "failed_run" in set(anomalies["rule"])
+    assert set(anomalies["severity"]).issubset({"medium", "high"})
