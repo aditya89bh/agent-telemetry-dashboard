@@ -75,4 +75,8 @@ The ingestion pipeline supports explicit schema migration before normalization a
 
 The `examples/` directory includes runnable scripts for LangChain, CrewAI, and OpenAI Agents payloads. Each script converts framework-specific telemetry into a versioned JSON envelope that can be uploaded through the dashboard.
 
+## Test Coverage
+
+Ingestion and integration behavior is covered by unit tests for JSON, CSV, ZIP, validation, error handling, normalization, history, statistics, preview, schema migration, and adapter conversion. Integration tests also verify that adapter output can be ingested as dashboard-compatible JSON.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.
