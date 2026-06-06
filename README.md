@@ -52,7 +52,7 @@ See [`docs/session_exploration.md`](docs/session_exploration.md) for the run-lev
 - JSON and CSV telemetry loading utilities
 - Schema versioning support for raw JSON, versioned JSON envelopes, and CSV files
 - Deterministic sample telemetry generator utility
-- Deterministic Pandas metrics
+- Deterministic Pandas metrics and aggregate analytics engine
 - Plotly charts for:
   - Summary metric cards for run count, failures, confidence, drift, latency, and memory operations
   - Run status breakdown
