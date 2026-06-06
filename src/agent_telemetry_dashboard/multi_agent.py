@@ -42,3 +42,41 @@ def _hierarchy_depth(run_id: str, parent_lookup: dict[str, object]) -> int:
         depth += 1
         parent = parent_lookup.get(parent)
     return depth
+
+
+def agent_relationship_graph(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Build graph node and edge tables for agent relationships."""
+    if df.empty:
+        return (
+            pd.DataFrame(columns=["agent_name", "runs", "status"]),
+            pd.DataFrame(columns=["source", "target", "relationship", "weight"]),
+        )
+
+    nodes = (
+        df.groupby("agent_name", as_index=False)
+        .agg(runs=("run_id", "count"), status=("status", _dominant_status))
+        .sort_values("agent_name")
+        .reset_index(drop=True)
+    )
+    hierarchy = agent_hierarchy(df)
+    run_to_agent = dict(zip(hierarchy["run_id"], hierarchy["agent_name"], strict=False))
+    edge_rows = []
+    for row in hierarchy.dropna(subset=["parent_run_id"]).itertuples(index=False):
+        source = run_to_agent.get(row.parent_run_id)
+        target = row.agent_name
+        if source and source != target:
+            edge_rows.append(
+                {"source": source, "target": target, "relationship": "parent", "weight": 1}
+            )
+    edges = pd.DataFrame(edge_rows, columns=["source", "target", "relationship", "weight"])
+    if not edges.empty:
+        edges = edges.groupby(["source", "target", "relationship"], as_index=False)["weight"].sum()
+    return nodes, edges
+
+
+def _dominant_status(status: pd.Series) -> str:
+    if status.eq("failed").any():
+        return "failed"
+    if status.eq("warning").any():
+        return "warning"
+    return "success"

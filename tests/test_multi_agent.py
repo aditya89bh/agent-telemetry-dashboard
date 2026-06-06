@@ -3,7 +3,7 @@ import pytest
 from pydantic import ValidationError
 
 from agent_telemetry_dashboard.models import AgentRegistryEntry, MultiAgentTelemetryRecord
-from agent_telemetry_dashboard.multi_agent import agent_hierarchy
+from agent_telemetry_dashboard.multi_agent import agent_hierarchy, agent_relationship_graph
 
 
 def test_agent_registry_entry_validates_agent_metadata() -> None:
@@ -62,3 +62,34 @@ def test_agent_hierarchy_computes_parent_child_depth() -> None:
 
     assert hierarchy.loc[hierarchy["run_id"] == "root", "depth"].iloc[0] == 0
     assert hierarchy.loc[hierarchy["run_id"] == "child", "depth"].iloc[0] == 1
+
+
+def test_agent_relationship_graph_returns_nodes_and_edges() -> None:
+    df = pd.DataFrame(
+        [
+            {
+                "run_id": "root",
+                "parent_run_id": None,
+                "agent_name": "Planner",
+                "task_name": "Plan",
+                "status": "success",
+            },
+            {
+                "run_id": "child",
+                "parent_run_id": "root",
+                "agent_name": "Worker",
+                "task_name": "Do",
+                "status": "warning",
+            },
+        ]
+    )
+
+    nodes, edges = agent_relationship_graph(df)
+
+    assert set(nodes["agent_name"]) == {"Planner", "Worker"}
+    assert edges.iloc[0].to_dict() == {
+        "source": "Planner",
+        "target": "Worker",
+        "relationship": "parent",
+        "weight": 1,
+    }
