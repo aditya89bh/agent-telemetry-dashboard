@@ -7,6 +7,7 @@ from agent_telemetry_dashboard.metrics import (
     memory_ops_over_time,
     overview_metrics,
     retry_count_per_task,
+    status_breakdown,
     tool_calls_per_run,
 )
 
@@ -41,6 +42,15 @@ def test_failure_rate_by_agent() -> None:
 
     assert set(result.columns) == {"agent_name", "failure_rate"}
     assert result["failure_rate"].between(0, 1).all()
+
+
+def test_status_breakdown_counts_runs() -> None:
+    df = load_telemetry(DATA)
+    result = status_breakdown(df)
+
+    assert set(result.columns) == {"status", "runs", "percentage"}
+    assert result["runs"].sum() == len(df)
+    assert round(result["percentage"].sum(), 10) == 1.0
 
 
 def test_chart_metric_frames_have_expected_columns() -> None:

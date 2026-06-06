@@ -54,6 +54,15 @@ def failure_rate_by_agent(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def status_breakdown(df: pd.DataFrame) -> pd.DataFrame:
+    """Return run counts and percentages by status."""
+    if df.empty:
+        return pd.DataFrame(columns=["status", "runs", "percentage"])
+    counts = df.groupby("status", as_index=False).size().rename(columns={"size": "runs"})
+    counts["percentage"] = counts["runs"] / counts["runs"].sum()
+    return counts.sort_values("runs", ascending=False).reset_index(drop=True)
+
+
 def retry_count_per_task(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=["task_name", "retries"])

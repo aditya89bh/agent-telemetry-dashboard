@@ -15,6 +15,7 @@ from agent_telemetry_dashboard.metrics import (
     memory_ops_over_time,
     overview_metrics,
     retry_count_per_task,
+    status_breakdown,
     tool_calls_per_run,
 )
 
@@ -84,6 +85,18 @@ def main() -> None:
 
     left, right = st.columns(2)
     with left:
+        st.subheader("Run status breakdown")
+        st.plotly_chart(
+            px.pie(
+                status_breakdown(filtered),
+                names="status",
+                values="runs",
+                hole=0.45,
+                color="status",
+            ),
+            use_container_width=True,
+        )
+
         st.subheader("Tool calls per run")
         st.plotly_chart(
             px.bar(tool_calls_per_run(filtered), x="run_id", y="tool_calls", color="agent_name"),
