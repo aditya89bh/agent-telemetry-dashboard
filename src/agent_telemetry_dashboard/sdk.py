@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from dataclasses import dataclass
@@ -27,6 +28,31 @@ class TelemetryTransport(Protocol):
 
     def send_batch(self, traces: list[StoredTrace]) -> None:
         """Send multiple stored traces."""
+
+
+class AsyncTelemetryTransport(Protocol):
+    """Async transport protocol used by SDK clients."""
+
+    async def send(self, trace: StoredTrace) -> None:
+        """Send one stored trace asynchronously."""
+
+    async def send_batch(self, traces: list[StoredTrace]) -> None:
+        """Send multiple stored traces asynchronously."""
+
+
+class AsyncTransportAdapter:
+    """Async adapter around a synchronous telemetry transport."""
+
+    def __init__(self, transport: TelemetryTransport) -> None:
+        self.transport = transport
+
+    async def send(self, trace: StoredTrace) -> None:
+        """Send one trace without blocking the event loop."""
+        await asyncio.to_thread(self.transport.send, trace)
+
+    async def send_batch(self, traces: list[StoredTrace]) -> None:
+        """Send a trace batch without blocking the event loop."""
+        await asyncio.to_thread(self.transport.send_batch, traces)
 
 
 class RepositoryTransport:
@@ -192,6 +218,28 @@ class TelemetryClient:
         traces = list(self._buffer)
         self._buffer.clear()
         self.transport.send_batch(traces)
+
+    async def async_emit(
+        self,
+        trace_type: str,
+        run_id: str,
+        payload: dict[str, object],
+        transport: AsyncTelemetryTransport | None = None,
+    ) -> StoredTrace:
+        """Emit one telemetry trace using an async transport adapter."""
+        trace = self._trace(trace_type=trace_type, run_id=run_id, payload=payload)
+        async_transport = transport or AsyncTransportAdapter(self.transport)
+        await async_transport.send(trace)
+        return trace
+
+    async def async_flush(self, transport: AsyncTelemetryTransport | None = None) -> None:
+        """Flush buffered traces using an async transport adapter."""
+        if not self._buffer:
+            return
+        traces = list(self._buffer)
+        self._buffer.clear()
+        async_transport = transport or AsyncTransportAdapter(self.transport)
+        await async_transport.send_batch(traces)
 
     def emit_tool_call(
         self,
