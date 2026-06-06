@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-label="Agent Telemetry Dashboard screenshot placeholder">
+  <rect width="1200" height="680" fill="#0f172a"/>
+  <rect x="36" y="36" width="1128" height="608" rx="24" fill="#111827" stroke="#334155"/>
+  <text x="72" y="96" fill="#e5e7eb" font-family="Inter, Arial" font-size="34" font-weight="700">Agent Telemetry Dashboard</text>
+  <text x="72" y="132" fill="#94a3b8" font-family="Inter, Arial" font-size="18">Screenshot placeholder — add a real dashboard capture here.</text>
+  <g fill="#1f2937" stroke="#475569">
+    <rect x="72" y="174" width="160" height="96" rx="14"/>
+    <rect x="252" y="174" width="160" height="96" rx="14"/>
+    <rect x="432" y="174" width="160" height="96" rx="14"/>
+    <rect x="612" y="174" width="160" height="96" rx="14"/>
+    <rect x="792" y="174" width="160" height="96" rx="14"/>
+    <rect x="972" y="174" width="92" height="96" rx="14"/>
+    <rect x="72" y="304" width="520" height="250" rx="18"/>
+    <rect x="632" y="304" width="432" height="250" rx="18"/>
+  </g>
+  <g fill="#38bdf8">
+    <rect x="104" y="488" width="32" height="30" rx="4"/>
+    <rect x="154" y="442" width="32" height="76" rx="4"/>
+    <rect x="204" y="400" width="32" height="118" rx="4"/>
+    <rect x="254" y="462" width="32" height="56" rx="4"/>
+    <rect x="304" y="364" width="32" height="154" rx="4"/>
+  </g>
+  <polyline points="670,500 728,470 786,430 844,448 902,382 960,350 1022,330" fill="none" stroke="#a78bfa" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
