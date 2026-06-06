@@ -8,6 +8,20 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from agent_telemetry_dashboard.analytics import (
+    agent_performance_scores,
+    aggregate_metrics,
+    confidence_trend,
+    detect_anomalies,
+    drift_trend,
+    failure_rates,
+    latency_trend,
+    memory_usage_trend,
+    retry_effectiveness_metrics,
+    run_quality_scores,
+    success_rates,
+    tool_reliability_metrics,
+)
 from agent_telemetry_dashboard.explorer import (
     compare_runs,
     confidence_evolution,
@@ -375,6 +389,61 @@ def render_data_tab(df: pd.DataFrame) -> None:
     st.dataframe(df.sort_values("timestamp", ascending=False), use_container_width=True)
 
 
+def render_analytics_tab(df: pd.DataFrame) -> None:
+    st.subheader("Telemetry analytics")
+    metrics = aggregate_metrics(df)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Agents", metrics["agents"])
+    c2.metric("Tasks", metrics["tasks"])
+    c3.metric("Success runs", metrics["success_runs"])
+    c4.metric("Total retries", metrics["total_retries"])
+
+    left, right = st.columns(2)
+    with left:
+        st.subheader("Agent performance scores")
+        st.plotly_chart(
+            px.bar(agent_performance_scores(df), x="agent_name", y="score"),
+            use_container_width=True,
+        )
+        st.subheader("Success and failure rates")
+        rate_df = success_rates(df).merge(failure_rates(df), on=["agent_name", "runs"])
+        st.plotly_chart(
+            px.bar(rate_df, x="agent_name", y=["success_rate", "failure_rate"], barmode="group"),
+            use_container_width=True,
+        )
+        st.subheader("Latency trend")
+        st.plotly_chart(
+            px.line(latency_trend(df), x="period", y=["avg_latency_ms", "p95_latency_ms"]),
+            use_container_width=True,
+        )
+        st.subheader("Memory usage trend")
+        st.plotly_chart(
+            px.line(memory_usage_trend(df), x="period", y=["memory_reads", "memory_writes"]),
+            use_container_width=True,
+        )
+
+    with right:
+        st.subheader("Confidence and drift trends")
+        st.plotly_chart(
+            px.line(confidence_trend(df), x="period", y="avg_confidence"),
+            use_container_width=True,
+        )
+        st.plotly_chart(
+            px.line(drift_trend(df), x="period", y="avg_drift_score"),
+            use_container_width=True,
+        )
+        st.subheader("Tool reliability and retries")
+        st.dataframe(tool_reliability_metrics(df), use_container_width=True, hide_index=True)
+        st.dataframe(retry_effectiveness_metrics(df), use_container_width=True, hide_index=True)
+
+    st.subheader("Run quality and anomalies")
+    quality, anomalies = st.columns(2)
+    with quality:
+        st.dataframe(run_quality_scores(df).head(10), use_container_width=True, hide_index=True)
+    with anomalies:
+        st.dataframe(detect_anomalies(df), use_container_width=True, hide_index=True)
+
+
 def main() -> None:
     st.title("📡 Agent Telemetry Dashboard")
     st.caption(
@@ -391,8 +460,8 @@ def main() -> None:
         st.warning("No telemetry records match the selected filters.")
         return
 
-    overview, reliability, runs, timeline, data = st.tabs(
-        ["Overview", "Reliability", "Runs", "Run timeline", "Raw data"]
+    overview, reliability, runs, analytics, timeline, data = st.tabs(
+        ["Overview", "Reliability", "Runs", "Analytics", "Run timeline", "Raw data"]
     )
     with overview:
         render_overview_tab(filtered)
@@ -400,6 +469,8 @@ def main() -> None:
         render_reliability_tab(filtered)
     with runs:
         render_runs_tab(filtered)
+    with analytics:
+        render_analytics_tab(filtered)
     with timeline:
         render_timeline_tab(filtered)
     with data:

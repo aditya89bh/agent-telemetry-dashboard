@@ -38,8 +38,9 @@ The dashboard is organized into four tabs:
 1. **Overview** — run status, tool calls, memory activity, and drift trends.
 2. **Reliability** — failure rate, retry totals, failed-run counts, confidence, and latency.
 3. **Runs** — compact run listing for session exploration.
-4. **Run timeline** — task-level run timeline using start timestamp and latency.
-5. **Raw data** — filtered telemetry table for inspection and export workflows.
+4. **Analytics** — aggregate metrics, scoring, trend analysis, anomalies, tool reliability, and retry effectiveness.
+5. **Run timeline** — task-level run timeline using start timestamp and latency.
+6. **Raw data** — filtered telemetry table for inspection and export workflows.
 
 The sidebar lets you load a local telemetry file and filter by agent, status, task, date range, and minimum confidence.
 
@@ -65,7 +66,7 @@ See [`docs/session_exploration.md`](docs/session_exploration.md) for the run-lev
   - Retry count, failures, failed runs per task, and selected-run failure/retry inspection
 - Searchable run listing with dedicated status filtering, run metadata, run detail, run comparison, event, memory, tool-call, and run timeline views
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
-- Tabbed dashboard layout for overview, reliability, timeline, and raw data views
+- Tabbed dashboard layout for overview, reliability, runs, analytics, timeline, and raw data views
 - Pytest coverage for loading, validation, filtering, generation, and metrics
 - GitHub Actions CI
 
