@@ -13,6 +13,7 @@ from agent_telemetry_dashboard.multi_agent import (
     agent_utilization_metrics,
     communication_events_to_dataframe,
     handoff_tracking,
+    multi_agent_comparison,
     shared_memory_tracking,
 )
 
@@ -188,3 +189,31 @@ def test_agent_utilization_metrics_sum_usage() -> None:
 
     assert metrics.loc[0, "runs"] == 2
     assert metrics.loc[0, "memory_ops"] == 6
+
+
+def test_multi_agent_comparison_returns_agent_rates() -> None:
+    df = pd.DataFrame(
+        [
+            {
+                "run_id": "run-006",
+                "agent_name": "Planner",
+                "status": "success",
+                "confidence": 0.9,
+                "drift_score": 0.1,
+                "latency_ms": 100,
+            },
+            {
+                "run_id": "run-007",
+                "agent_name": "Worker",
+                "status": "failed",
+                "confidence": 0.5,
+                "drift_score": 0.5,
+                "latency_ms": 300,
+            },
+        ]
+    )
+
+    comparison = multi_agent_comparison(df)
+
+    assert set(comparison["agent_name"]) == {"Planner", "Worker"}
+    assert comparison["success_rate"].between(0, 1).all()

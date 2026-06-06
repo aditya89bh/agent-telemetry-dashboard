@@ -158,3 +158,27 @@ def agent_utilization_metrics(df: pd.DataFrame) -> pd.DataFrame:
     )
     grouped["memory_ops"] = grouped["memory_reads"] + grouped["memory_writes"]
     return grouped[columns].sort_values("runs", ascending=False).reset_index(drop=True)
+
+
+def multi_agent_comparison(df: pd.DataFrame) -> pd.DataFrame:
+    """Compare agents across core observability dimensions."""
+    columns = [
+        "agent_name",
+        "runs",
+        "success_rate",
+        "failure_rate",
+        "avg_confidence",
+        "avg_drift_score",
+        "avg_latency_ms",
+    ]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    grouped = df.groupby("agent_name", as_index=False).agg(
+        runs=("run_id", "count"),
+        success_rate=("status", lambda status: status.eq("success").mean()),
+        failure_rate=("status", lambda status: status.eq("failed").mean()),
+        avg_confidence=("confidence", "mean"),
+        avg_drift_score=("drift_score", "mean"),
+        avg_latency_ms=("latency_ms", "mean"),
+    )
+    return grouped[columns].sort_values("success_rate", ascending=False).reset_index(drop=True)

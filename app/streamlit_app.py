@@ -52,7 +52,7 @@ from agent_telemetry_dashboard.metrics import (
     status_breakdown,
     tool_calls_per_run,
 )
-from agent_telemetry_dashboard.multi_agent import agent_utilization_metrics
+from agent_telemetry_dashboard.multi_agent import agent_utilization_metrics, multi_agent_comparison
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = ROOT / "data" / "sample_telemetry.json"
@@ -488,6 +488,19 @@ def render_agents_tab(df: pd.DataFrame) -> None:
             ),
             use_container_width=True,
         )
+
+    st.subheader("Multi-agent comparison")
+    comparison = multi_agent_comparison(df)
+    st.dataframe(comparison, use_container_width=True, hide_index=True)
+    st.plotly_chart(
+        px.bar(
+            comparison,
+            x="agent_name",
+            y=["success_rate", "failure_rate"],
+            barmode="group",
+        ),
+        use_container_width=True,
+    )
 
 
 def main() -> None:
