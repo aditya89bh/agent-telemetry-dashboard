@@ -3,6 +3,7 @@ from pathlib import Path
 from agent_telemetry_dashboard.explorer import (
     RUN_LIST_COLUMNS,
     filter_runs_by_status,
+    run_detail,
     run_listing,
     search_runs,
 )
@@ -37,3 +38,11 @@ def test_filter_runs_by_status_limits_listing_rows() -> None:
 
     assert not failed.empty
     assert set(failed["status"]) == {"failed"}
+
+
+def test_run_detail_returns_selected_run() -> None:
+    df = load_telemetry(DATA)
+    detail = run_detail(df, "run-001")
+
+    assert detail["run_id"] == "run-001"
+    assert detail["agent_name"] == "MemoryScout"

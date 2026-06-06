@@ -40,3 +40,11 @@ def filter_runs_by_status(df: pd.DataFrame, statuses: list[str]) -> pd.DataFrame
     if df.empty or not statuses:
         return run_listing(df)
     return run_listing(df[df["status"].isin(statuses)])
+
+
+def run_detail(df: pd.DataFrame, run_id: str) -> pd.Series:
+    """Return a single run detail row by id."""
+    matches = df[df["run_id"] == run_id]
+    if matches.empty:
+        raise KeyError(f"Run not found: {run_id}")
+    return matches.sort_values("timestamp").iloc[0]

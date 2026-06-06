@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from agent_telemetry_dashboard.explorer import filter_runs_by_status, search_runs
+from agent_telemetry_dashboard.explorer import filter_runs_by_status, run_detail, search_runs
 from agent_telemetry_dashboard.filters import filter_telemetry
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
@@ -223,11 +223,38 @@ def render_runs_tab(df: pd.DataFrame) -> None:
     statuses = sorted(df["status"].unique())
     selected_statuses = st.multiselect("Run listing status", statuses, default=statuses)
     searched = search_runs(df, query)
+    visible_runs = filter_runs_by_status(searched, selected_statuses)
     st.dataframe(
-        filter_runs_by_status(searched, selected_statuses),
+        visible_runs,
         use_container_width=True,
         hide_index=True,
     )
+    if visible_runs.empty:
+        return
+
+    st.subheader("Run detail")
+    selected_run = st.selectbox("Select run", visible_runs["run_id"].tolist())
+    detail = run_detail(df, selected_run)
+    left, right = st.columns(2)
+    with left:
+        st.write(
+            {
+                "run_id": detail["run_id"],
+                "agent_name": detail["agent_name"],
+                "task_name": detail["task_name"],
+                "timestamp": detail["timestamp"],
+                "status": detail["status"],
+            }
+        )
+    with right:
+        st.write(
+            {
+                "confidence": detail["confidence"],
+                "drift_score": detail["drift_score"],
+                "latency_ms": detail["latency_ms"],
+                "notes": detail["notes"],
+            }
+        )
 
 
 def render_data_tab(df: pd.DataFrame) -> None:
