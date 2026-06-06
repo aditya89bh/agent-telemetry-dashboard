@@ -63,4 +63,8 @@ The ingestion pipeline supports explicit schema migration before normalization a
 
 `langchain_event_to_record` converts LangChain-style run/event dictionaries into dashboard telemetry records. It maps run IDs, chain names, run types, timestamps, child runs as tool calls, latency, confidence, status, and errors into the normalized telemetry schema.
 
+## CrewAI Adapter
+
+`crewai_task_to_record` converts CrewAI-style task execution payloads into dashboard telemetry records. It maps task IDs, agent role/name, task descriptions, timestamps, tools, latency, retries, failures, and outputs into the same schema used by uploaded telemetry.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

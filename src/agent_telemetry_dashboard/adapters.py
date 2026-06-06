@@ -41,3 +41,35 @@ def langchain_event_to_record(event: dict[str, Any]) -> dict[str, Any]:
 def langchain_events_to_records(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Convert multiple LangChain events into dashboard telemetry records."""
     return [langchain_event_to_record(event) for event in events]
+
+
+def crewai_task_to_record(task: dict[str, Any]) -> dict[str, Any]:
+    """Convert a CrewAI task/agent execution payload into dashboard telemetry."""
+    status = str(task.get("status") or "success").lower()
+    if status in {"complete", "completed", "done"}:
+        status = "success"
+    if status in {"error", "failed"}:
+        status = "failed"
+
+    agent = task.get("agent") or {}
+    agent_name = agent.get("role") or agent.get("name") or task.get("agent_name") or "crewai"
+    record = {
+        "run_id": str(task.get("id") or task.get("task_id") or "crewai-task"),
+        "agent_name": str(agent_name),
+        "task_name": str(task.get("description") or task.get("name") or "crewai_task")[:120],
+        "timestamp": str(task.get("started_at") or task.get("timestamp") or _iso_now()),
+        "status": status,
+        "tool_calls": len(task.get("tools") or task.get("tool_calls") or []),
+        "failures": 1 if status == "failed" else int(task.get("failures", 0) or 0),
+        "retries": int(task.get("retries", 0) or 0),
+        "confidence": float(task.get("confidence", 0.0) or 0.0),
+        "drift_score": float(task.get("drift_score", 0.0) or 0.0),
+        "latency_ms": int(task.get("latency_ms") or task.get("duration_ms") or 0),
+        "notes": str(task.get("output") or task.get("error") or "")[:500],
+    }
+    return normalize_telemetry_record(record)
+
+
+def crewai_tasks_to_records(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Convert multiple CrewAI task payloads into dashboard telemetry records."""
+    return [crewai_task_to_record(task) for task in tasks]
