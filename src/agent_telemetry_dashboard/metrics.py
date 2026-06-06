@@ -77,3 +77,10 @@ def drift_over_time(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=["timestamp", "agent_name", "drift_score"])
     return df[["timestamp", "agent_name", "drift_score"]].sort_values("timestamp")
+
+
+def latency_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    """Return latency values with agent and status context for distribution charts."""
+    if df.empty:
+        return pd.DataFrame(columns=["run_id", "agent_name", "status", "latency_ms"])
+    return df[["run_id", "agent_name", "status", "latency_ms"]].sort_values("latency_ms")

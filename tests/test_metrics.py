@@ -4,6 +4,7 @@ from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
     drift_over_time,
     failure_rate_by_agent,
+    latency_distribution,
     memory_ops_over_time,
     overview_metrics,
     retry_count_per_task,
@@ -59,3 +60,9 @@ def test_chart_metric_frames_have_expected_columns() -> None:
     assert list(tool_calls_per_run(df).columns) == ["run_id", "agent_name", "tool_calls"]
     assert list(retry_count_per_task(df).columns) == ["task_name", "retries"]
     assert list(drift_over_time(df).columns) == ["timestamp", "agent_name", "drift_score"]
+    assert list(latency_distribution(df).columns) == [
+        "run_id",
+        "agent_name",
+        "status",
+        "latency_ms",
+    ]

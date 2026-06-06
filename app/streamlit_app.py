@@ -12,6 +12,7 @@ from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
     drift_over_time,
     failure_rate_by_agent,
+    latency_distribution,
     memory_ops_over_time,
     overview_metrics,
     retry_count_per_task,
@@ -131,6 +132,18 @@ def main() -> None:
         memory_df = memory_ops_over_time(filtered)
         st.plotly_chart(
             px.line(memory_df, x="date", y=["memory_reads", "memory_writes"], markers=True),
+            use_container_width=True,
+        )
+
+        st.subheader("Latency distribution")
+        st.plotly_chart(
+            px.histogram(
+                latency_distribution(filtered),
+                x="latency_ms",
+                color="status",
+                nbins=14,
+                marginal="box",
+            ),
             use_container_width=True,
         )
 
