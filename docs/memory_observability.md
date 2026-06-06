@@ -57,3 +57,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Lifecycle Visualization
 
 `memory_lifecycle_events` turns write traces into a timeline-ready dataframe with memory ID, timestamp, operation, source, importance score, and summary. Dashboard views can use this to visualize create, update, merge, delete, and expiration events across memory lifecycles.
+
+## Memory Replay View
+
+`memory_replay_events` combines retrieval, write, and influence traces into one chronological replay. It can be filtered by `run_id`, making it possible to reconstruct when a memory was retrieved, changed, and used during a specific agent run.

@@ -9,6 +9,7 @@ from agent_telemetry_dashboard.memory_observability import (
     memory_influence_dataframe,
     memory_influence_scores,
     memory_lifecycle_events,
+    memory_replay_events,
 )
 from agent_telemetry_dashboard.models import (
     MemoryInfluenceTrace,
@@ -245,3 +246,42 @@ def test_memory_lifecycle_events_builds_timeline_dataframe() -> None:
 
     assert lifecycle["operation"].tolist() == ["create", "update"]
     assert lifecycle.loc[0, "summary"] == "Created"
+
+
+def test_memory_replay_events_combines_memory_activity_for_run() -> None:
+    retrievals = [
+        MemoryRetrievalTrace(
+            trace_id="r1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:00:00",
+            relevance_score=0.9,
+            content_summary="Retrieved preference",
+        )
+    ]
+    writes = [
+        MemoryWriteTrace(
+            trace_id="w1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:01:00",
+            operation="update",
+            new_summary="Updated preference",
+        )
+    ]
+    influences = [
+        MemoryInfluenceTrace(
+            trace_id="i1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:02:00",
+            influence_kind="decision",
+            target="decision",
+            influence_strength=0.8,
+        )
+    ]
+
+    replay = memory_replay_events(retrievals, writes, influences, run_id="run-1")
+
+    assert replay["event_type"].tolist() == ["retrieval", "write:update", "influence:decision"]
+    assert replay.loc[0, "detail"] == "Retrieved preference"

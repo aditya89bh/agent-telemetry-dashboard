@@ -160,3 +160,56 @@ def memory_lifecycle_events(writes: list[MemoryWriteTrace]) -> pd.DataFrame:
     )
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
     return df.sort_values(["memory_id", "timestamp"]).reset_index(drop=True)
+
+
+def memory_replay_events(
+    retrievals: list[MemoryRetrievalTrace],
+    writes: list[MemoryWriteTrace],
+    influences: list[MemoryInfluenceTrace],
+    run_id: str | None = None,
+) -> pd.DataFrame:
+    """Build a chronological replay of memory activity for a run or dataset."""
+    events: list[dict[str, object]] = []
+    for trace in retrievals:
+        if run_id is None or trace.run_id == run_id:
+            events.append(
+                {
+                    "timestamp": trace.timestamp,
+                    "run_id": trace.run_id,
+                    "memory_id": trace.memory_id,
+                    "event_type": "retrieval",
+                    "detail": trace.content_summary or trace.query,
+                    "score": trace.relevance_score,
+                }
+            )
+    for trace in writes:
+        if run_id is None or trace.run_id == run_id:
+            events.append(
+                {
+                    "timestamp": trace.timestamp,
+                    "run_id": trace.run_id,
+                    "memory_id": trace.memory_id,
+                    "event_type": f"write:{trace.operation}",
+                    "detail": trace.new_summary or trace.previous_summary,
+                    "score": trace.importance_score,
+                }
+            )
+    for trace in influences:
+        if run_id is None or trace.run_id == run_id:
+            events.append(
+                {
+                    "timestamp": trace.timestamp,
+                    "run_id": trace.run_id,
+                    "memory_id": trace.memory_id,
+                    "event_type": f"influence:{trace.influence_kind}",
+                    "detail": trace.evidence or trace.target,
+                    "score": trace.influence_strength,
+                }
+            )
+
+    columns = ["timestamp", "run_id", "memory_id", "event_type", "detail", "score"]
+    df = pd.DataFrame(events, columns=columns)
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
+    return df.sort_values("timestamp").reset_index(drop=True)
