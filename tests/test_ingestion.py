@@ -11,6 +11,7 @@ from agent_telemetry_dashboard.ingestion import (
     ingest_csv_upload,
     ingest_json_upload,
     ingest_zip_upload,
+    normalize_telemetry_record,
     validate_ingestion_records,
 )
 
@@ -99,3 +100,23 @@ def test_ingest_json_upload_raises_user_facing_error() -> None:
         assert exc.errors
     else:  # pragma: no cover - explicit assertion path for readability.
         raise AssertionError("Expected IngestionError")
+
+
+def test_normalize_telemetry_record_maps_common_external_fields() -> None:
+    normalized = normalize_telemetry_record(
+        {
+            "run_id": "run-normalized-1",
+            "agent": "writer",
+            "task": "Draft",
+            "timestamp": "2026-01-01T00:00:00",
+            "status": "ok",
+            "duration_ms": 42,
+        }
+    )
+
+    assert normalized["agent_name"] == "writer"
+    assert normalized["task_name"] == "Draft"
+    assert normalized["status"] == "success"
+    assert normalized["latency_ms"] == 42
+    assert normalized["schema_version"] == "1.0"
+    assert normalized["memory_reads"] == 0

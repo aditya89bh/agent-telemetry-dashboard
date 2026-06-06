@@ -13,6 +13,21 @@ import pandas as pd
 from agent_telemetry_dashboard.loader import _records_from_json_payload, records_to_dataframe
 from agent_telemetry_dashboard.models import TelemetryRecord
 
+FIELD_ALIASES = {
+    "agent": "agent_name",
+    "task": "task_name",
+    "duration_ms": "latency_ms",
+    "error_count": "failures",
+    "retry_count": "retries",
+}
+STATUS_ALIASES = {
+    "ok": "success",
+    "succeeded": "success",
+    "error": "failed",
+    "failure": "failed",
+    "warn": "warning",
+}
+
 
 @dataclass(frozen=True)
 class IngestionResult:
@@ -64,6 +79,38 @@ def validate_ingestion_records(raw_records: list[Any]) -> IngestionValidationRep
     )
 
 
+def normalize_telemetry_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Normalize common external telemetry field names into the dashboard schema."""
+    normalized = dict(record)
+    for source_field, target_field in FIELD_ALIASES.items():
+        if source_field in normalized and target_field not in normalized:
+            normalized[target_field] = normalized.pop(source_field)
+
+    status = normalized.get("status")
+    if isinstance(status, str):
+        normalized["status"] = STATUS_ALIASES.get(status.lower(), status.lower())
+
+    normalized.setdefault("schema_version", "1.0")
+    normalized.setdefault("memory_reads", 0)
+    normalized.setdefault("memory_writes", 0)
+    normalized.setdefault("tool_calls", 0)
+    normalized.setdefault("failures", 0)
+    normalized.setdefault("retries", 0)
+    normalized.setdefault("confidence", 0.0)
+    normalized.setdefault("drift_score", 0.0)
+    normalized.setdefault("latency_ms", 0)
+    normalized.setdefault("notes", "")
+    return normalized
+
+
+def normalize_telemetry_records(raw_records: list[Any]) -> list[Any]:
+    """Normalize a collection of raw telemetry records where possible."""
+    return [
+        normalize_telemetry_record(item) if isinstance(item, dict) else item
+        for item in raw_records
+    ]
+
+
 def ingest_json_upload(content: bytes, source_name: str = "upload.json") -> IngestionResult:
     """Parse a JSON upload into the dashboard telemetry dataframe format."""
     try:
@@ -73,6 +120,7 @@ def ingest_json_upload(content: bytes, source_name: str = "upload.json") -> Inge
         raise IngestionError(
             "Could not parse JSON telemetry upload", source_name=source_name
         ) from exc
+    raw_records = normalize_telemetry_records(raw_records)
     report = validate_ingestion_records(raw_records)
     if not report.is_valid:
         raise IngestionError(
@@ -100,6 +148,7 @@ def ingest_csv_upload(content: bytes, source_name: str = "upload.csv") -> Ingest
         raise IngestionError(
             "Could not parse CSV telemetry upload", source_name=source_name
         ) from exc
+    raw_records = normalize_telemetry_records(raw_records)
     report = validate_ingestion_records(raw_records)
     if not report.is_valid:
         raise IngestionError(

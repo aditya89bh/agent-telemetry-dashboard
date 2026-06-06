@@ -35,4 +35,8 @@ ZIP uploads can bundle multiple `.json` and `.csv` telemetry files. The ingestio
 
 Upload parsing and validation failures raise `IngestionError`, a user-facing exception that preserves the source filename and row-level validation errors. The upload page catches this exception and displays actionable error details instead of crashing the dashboard.
 
+## Normalization
+
+The ingestion layer normalizes common external field names before validation. For example, `agent` maps to `agent_name`, `task` maps to `task_name`, `duration_ms` maps to `latency_ms`, and status aliases such as `ok` or `error` map to dashboard statuses. Missing optional metrics default to zero-valued telemetry fields so lightweight exports can still be imported safely.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.
