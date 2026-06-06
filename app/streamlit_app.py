@@ -10,6 +10,7 @@ import streamlit as st
 
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
+    confidence_distribution,
     drift_over_time,
     failure_rate_by_agent,
     latency_distribution,
@@ -149,7 +150,13 @@ def main() -> None:
 
         st.subheader("Confidence distribution")
         st.plotly_chart(
-            px.histogram(filtered, x="confidence", color="status", nbins=12, marginal="box"),
+            px.histogram(
+                confidence_distribution(filtered),
+                x="confidence",
+                color="status",
+                nbins=12,
+                marginal="box",
+            ),
             use_container_width=True,
         )
 

@@ -38,7 +38,7 @@ Agent telemetry makes behavior observable:
   - Memory reads/writes over time
   - Failure rate
   - Latency distribution
-  - Confidence distribution
+  - Status-aware confidence distribution
   - Drift score over time
   - Retry count per task
 - Run timeline view

@@ -84,3 +84,10 @@ def latency_distribution(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame(columns=["run_id", "agent_name", "status", "latency_ms"])
     return df[["run_id", "agent_name", "status", "latency_ms"]].sort_values("latency_ms")
+
+
+def confidence_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    """Return confidence values with context for histogram and box plots."""
+    if df.empty:
+        return pd.DataFrame(columns=["run_id", "agent_name", "status", "confidence"])
+    return df[["run_id", "agent_name", "status", "confidence"]].sort_values("confidence")

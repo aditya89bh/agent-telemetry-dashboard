@@ -2,6 +2,7 @@ from pathlib import Path
 
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
+    confidence_distribution,
     drift_over_time,
     failure_rate_by_agent,
     latency_distribution,
@@ -65,4 +66,10 @@ def test_chart_metric_frames_have_expected_columns() -> None:
         "agent_name",
         "status",
         "latency_ms",
+    ]
+    assert list(confidence_distribution(df).columns) == [
+        "run_id",
+        "agent_name",
+        "status",
+        "confidence",
     ]
