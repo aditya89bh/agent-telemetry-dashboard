@@ -43,6 +43,8 @@ The dashboard is organized into four tabs:
 
 The sidebar lets you load a local telemetry file and filter by agent, status, task, date range, and minimum confidence.
 
+See [`docs/session_exploration.md`](docs/session_exploration.md) for the run-level exploration workflow added in Phase 2.
+
 ## Features
 
 - Streamlit dashboard using local sample data
@@ -91,6 +93,10 @@ Metrics are computed with Pandas and do not depend on external services. This ke
 ### Sample telemetry generation
 
 The `generate-agent-telemetry` command creates deterministic sample telemetry for demos, screenshots, and local experimentation.
+
+### Session exploration
+
+The Runs tab supports search, status filtering, selected-run details, metadata, failure/retry inspection, memory and tool timelines, confidence/drift evolution, and run-to-run comparison.
 
 ## Quickstart
 
