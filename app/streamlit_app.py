@@ -22,6 +22,7 @@ from agent_telemetry_dashboard.analytics import (
     success_rates,
     tool_reliability_metrics,
 )
+from agent_telemetry_dashboard.datasets import DatasetRegistry
 from agent_telemetry_dashboard.explorer import (
     compare_runs,
     confidence_evolution,
@@ -86,6 +87,7 @@ from agent_telemetry_dashboard.multi_agent import (
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = ROOT / "data" / "sample_telemetry.json"
 IMPORT_HISTORY_PATH = ROOT / "data" / "import_history.jsonl"
+DATASET_REGISTRY_PATH = ROOT / "data" / "datasets.json"
 
 st.set_page_config(
     page_title="Agent Telemetry Dashboard",
@@ -102,6 +104,16 @@ def cached_load(path: str) -> pd.DataFrame:
 def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     with st.sidebar:
         st.header("Filters")
+        registry = DatasetRegistry(DATASET_REGISTRY_PATH)
+        datasets = registry.list_datasets()
+        if datasets:
+            selected_dataset = st.selectbox(
+                "Saved dataset",
+                datasets,
+                format_func=lambda dataset: dataset.name,
+                help="Select a persisted trace dataset for trace-store workflows.",
+            )
+            st.caption(f"Dataset ID: `{selected_dataset.dataset_id}`")
         agents = sorted(df["agent_name"].unique())
         statuses = sorted(df["status"].unique())
         tasks = sorted(df["task_name"].unique())

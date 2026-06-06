@@ -23,3 +23,7 @@ Phase 7 adds a persistent telemetry platform foundation.
 ## Dataset Registry
 
 `DatasetRegistry` stores dataset metadata in a small JSON file. `DatasetEntry` tracks dataset ID, display name, description, and creation timestamp. This registry lets the dashboard distinguish multiple persisted trace collections without changing existing local-file workflows.
+
+## Dataset Selection
+
+When `data/datasets.json` contains registered datasets, the dashboard sidebar shows a **Saved dataset** selector with dataset names and IDs. This introduces dataset awareness for trace-store workflows while preserving the existing local telemetry file input.
