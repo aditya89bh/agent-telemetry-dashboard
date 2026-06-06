@@ -3,6 +3,7 @@ from pathlib import Path
 from agent_telemetry_dashboard.analytics import (
     agent_performance_scores,
     aggregate_metrics,
+    confidence_trend,
     failure_rates,
     latency_trend,
     success_rates,
@@ -64,3 +65,18 @@ def test_latency_trend_returns_period_statistics() -> None:
     assert set(trend.columns) == {"period", "avg_latency_ms", "p95_latency_ms", "runs"}
     assert trend["runs"].sum() == len(df)
     assert (trend["p95_latency_ms"] >= trend["avg_latency_ms"]).all()
+
+
+def test_confidence_trend_returns_bounded_scores() -> None:
+    df = load_telemetry(DATA)
+    trend = confidence_trend(df)
+
+    assert set(trend.columns) == {
+        "period",
+        "avg_confidence",
+        "min_confidence",
+        "max_confidence",
+        "runs",
+    }
+    assert trend["avg_confidence"].between(0, 1).all()
+    assert trend["runs"].sum() == len(df)

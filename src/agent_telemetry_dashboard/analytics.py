@@ -114,3 +114,24 @@ def latency_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
         .rename(columns={"timestamp": "period"})
     )
     return trend[columns]
+
+
+def confidence_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
+    """Analyze average confidence over time."""
+    columns = ["period", "avg_confidence", "min_confidence", "max_confidence", "runs"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    trend = (
+        df.set_index("timestamp")
+        .resample(freq)
+        .agg(
+            avg_confidence=("confidence", "mean"),
+            min_confidence=("confidence", "min"),
+            max_confidence=("confidence", "max"),
+            runs=("run_id", "count"),
+        )
+        .dropna(subset=["avg_confidence"])
+        .reset_index()
+        .rename(columns={"timestamp": "period"})
+    )
+    return trend[columns]
