@@ -94,3 +94,23 @@ def failure_rates(df: pd.DataFrame, by: str = "agent_name") -> pd.DataFrame:
     )
     grouped["failure_rate"] = grouped["failed_runs"] / grouped["runs"]
     return grouped.sort_values("failure_rate", ascending=False).reset_index(drop=True)
+
+
+def latency_trend(df: pd.DataFrame, freq: str = "D") -> pd.DataFrame:
+    """Analyze average and p95 latency over time."""
+    columns = ["period", "avg_latency_ms", "p95_latency_ms", "runs"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    trend = (
+        df.set_index("timestamp")
+        .resample(freq)
+        .agg(
+            avg_latency_ms=("latency_ms", "mean"),
+            p95_latency_ms=("latency_ms", lambda value: value.quantile(0.95)),
+            runs=("run_id", "count"),
+        )
+        .dropna(subset=["avg_latency_ms"])
+        .reset_index()
+        .rename(columns={"timestamp": "period"})
+    )
+    return trend[columns]

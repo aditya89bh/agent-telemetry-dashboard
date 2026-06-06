@@ -4,6 +4,7 @@ from agent_telemetry_dashboard.analytics import (
     agent_performance_scores,
     aggregate_metrics,
     failure_rates,
+    latency_trend,
     success_rates,
 )
 from agent_telemetry_dashboard.loader import load_telemetry
@@ -54,3 +55,12 @@ def test_failure_rates_group_by_agent() -> None:
     }
     assert rates["failure_rate"].between(0, 1).all()
     assert rates["failed_runs"].sum() == int(df["status"].eq("failed").sum())
+
+
+def test_latency_trend_returns_period_statistics() -> None:
+    df = load_telemetry(DATA)
+    trend = latency_trend(df)
+
+    assert set(trend.columns) == {"period", "avg_latency_ms", "p95_latency_ms", "runs"}
+    assert trend["runs"].sum() == len(df)
+    assert (trend["p95_latency_ms"] >= trend["avg_latency_ms"]).all()
