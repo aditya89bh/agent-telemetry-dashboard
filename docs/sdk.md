@@ -23,3 +23,7 @@ The SDK is intentionally small and local-first. It does not require a server, AP
 ## Run Lifecycle Emitter
 
 `TelemetryClient.emit_run_start(...)` and `TelemetryClient.emit_run_end(...)` record run lifecycle events with trace type `run_lifecycle`. Start events include agent/task names; end events include status and latency.
+
+## SDK Example
+
+`examples/sdk_trace_store_example.py` demonstrates creating a SQLite trace store, wrapping it in `TraceRepository`, creating a `TelemetryClient`, and emitting run lifecycle, generic event, and tool call traces.
