@@ -182,3 +182,20 @@ def traces_to_dataframe(traces: list[StoredTrace]) -> pd.DataFrame:
 def query_traces_dataframe(repository: TraceRepository, query: TraceQuery) -> pd.DataFrame:
     """Run a trace query and return dataframe output for dashboard use."""
     return traces_to_dataframe(repository.store.query_traces(query))
+
+
+def filter_stored_traces(
+    traces: list[StoredTrace],
+    trace_type: str | None = None,
+    run_id: str | None = None,
+    dataset_id: str | None = None,
+) -> list[StoredTrace]:
+    """Filter stored traces in memory using common trace dimensions."""
+    filtered = traces
+    if trace_type is not None:
+        filtered = [trace for trace in filtered if trace.trace_type == trace_type]
+    if run_id is not None:
+        filtered = [trace for trace in filtered if trace.run_id == run_id]
+    if dataset_id is not None:
+        filtered = [trace for trace in filtered if trace.dataset_id == dataset_id]
+    return filtered

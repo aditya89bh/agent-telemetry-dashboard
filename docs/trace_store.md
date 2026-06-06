@@ -31,3 +31,7 @@ When `data/datasets.json` contains registered datasets, the dashboard sidebar sh
 ## Trace Querying Interface
 
 `TraceQuery` can filter by dataset ID, trace type, run ID, and limit. `query_traces_dataframe` and `traces_to_dataframe` expose query results as Pandas dataframes so future dashboard views can inspect stored traces without backend-specific SQL.
+
+## Trace Filtering Utilities
+
+`filter_stored_traces` filters in-memory stored trace lists by dataset ID, trace type, and run ID. This is useful for UI workflows, tests, SDK-side previews, and post-query filtering without requiring a backend round trip.
