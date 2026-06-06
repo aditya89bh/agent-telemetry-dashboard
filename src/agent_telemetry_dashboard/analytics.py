@@ -67,3 +67,16 @@ def agent_performance_scores(df: pd.DataFrame) -> pd.DataFrame:
     )
     scores["score"] = raw_score.round(2).clip(0, 100)
     return scores[columns].sort_values("score", ascending=False).reset_index(drop=True)
+
+
+def success_rates(df: pd.DataFrame, by: str = "agent_name") -> pd.DataFrame:
+    """Calculate success rates overall or grouped by a telemetry column."""
+    columns = [by, "runs", "success_runs", "success_rate"]
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    grouped = df.groupby(by, as_index=False).agg(
+        runs=("run_id", "count"),
+        success_runs=("status", lambda status: int(status.eq("success").sum())),
+    )
+    grouped["success_rate"] = grouped["success_runs"] / grouped["runs"]
+    return grouped.sort_values("success_rate", ascending=False).reset_index(drop=True)
