@@ -53,3 +53,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Drift Metrics
 
 `memory_drift_metrics` estimates how much each memory changes over its write history. It reports version count, distinct summary count, average importance, and a normalized drift score so long-lived memories with unstable content are easy to spot.
+
+## Memory Lifecycle Visualization
+
+`memory_lifecycle_events` turns write traces into a timeline-ready dataframe with memory ID, timestamp, operation, source, importance score, and summary. Dashboard views can use this to visualize create, update, merge, delete, and expiration events across memory lifecycles.

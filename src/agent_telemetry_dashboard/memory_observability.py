@@ -130,3 +130,33 @@ def memory_drift_metrics(writes: list[MemoryWriteTrace]) -> pd.DataFrame:
         axis=1,
     )
     return grouped.sort_values("drift_score", ascending=False).reset_index(drop=True)
+
+
+def memory_lifecycle_events(writes: list[MemoryWriteTrace]) -> pd.DataFrame:
+    """Build a timeline-ready dataframe for memory lifecycle visualization."""
+    columns = [
+        "memory_id",
+        "timestamp",
+        "operation",
+        "source",
+        "importance_score",
+        "summary",
+    ]
+    if not writes:
+        return pd.DataFrame(columns=columns)
+    df = pd.DataFrame(
+        [
+            {
+                "memory_id": trace.memory_id,
+                "timestamp": trace.timestamp,
+                "operation": trace.operation,
+                "source": trace.source,
+                "importance_score": trace.importance_score,
+                "summary": trace.new_summary or trace.previous_summary,
+            }
+            for trace in writes
+        ],
+        columns=columns,
+    )
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
+    return df.sort_values(["memory_id", "timestamp"]).reset_index(drop=True)

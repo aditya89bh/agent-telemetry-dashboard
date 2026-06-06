@@ -8,6 +8,7 @@ from agent_telemetry_dashboard.memory_observability import (
     memory_effectiveness_metrics,
     memory_influence_dataframe,
     memory_influence_scores,
+    memory_lifecycle_events,
 )
 from agent_telemetry_dashboard.models import (
     MemoryInfluenceTrace,
@@ -218,3 +219,29 @@ def test_memory_drift_metrics_score_summary_changes() -> None:
     assert drift.loc[0, "memory_id"] == "mem-1"
     assert drift.loc[0, "versions"] == 2
     assert drift.loc[0, "drift_score"] == 1.0
+
+
+def test_memory_lifecycle_events_builds_timeline_dataframe() -> None:
+    writes = [
+        MemoryWriteTrace(
+            trace_id="w2",
+            run_id="run-2",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:02:00",
+            operation="update",
+            new_summary="Updated",
+        ),
+        MemoryWriteTrace(
+            trace_id="w1",
+            run_id="run-1",
+            memory_id="mem-1",
+            timestamp="2026-01-01T00:01:00",
+            operation="create",
+            new_summary="Created",
+        ),
+    ]
+
+    lifecycle = memory_lifecycle_events(writes)
+
+    assert lifecycle["operation"].tolist() == ["create", "update"]
+    assert lifecycle.loc[0, "summary"] == "Created"
