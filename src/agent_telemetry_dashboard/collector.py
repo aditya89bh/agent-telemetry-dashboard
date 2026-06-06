@@ -41,6 +41,7 @@ class CollectorAPI:
         self.add_route("POST", "/v1/traces", self.ingest_trace)
         self.add_route("POST", "/v1/memory-traces", self.ingest_memory_trace)
         self.add_route("POST", "/v1/tool-calls", self.ingest_tool_call)
+        self.add_route("POST", "/v1/run-lifecycle", self.ingest_run_lifecycle)
 
     def add_route(self, method: str, path: str, handler: CollectorHandler) -> None:
         """Register a JSON handler for one HTTP method and path."""
@@ -95,6 +96,19 @@ class CollectorAPI:
         trace_payload["payload"] = {
             "tool_name": payload["tool_name"],
             "status": payload.get("status", "success"),
+            "latency_ms": payload.get("latency_ms", 0),
+            "metadata": payload.get("metadata", {}),
+        }
+        return self.ingest_trace(trace_payload)
+
+    def ingest_run_lifecycle(self, payload: JsonObject) -> JsonObject:
+        """Persist one run lifecycle trace from the collector API."""
+        trace_payload = {**payload, "trace_type": "run_lifecycle"}
+        trace_payload["payload"] = {
+            "lifecycle_event": payload["lifecycle_event"],
+            "agent_name": payload.get("agent_name", ""),
+            "task_name": payload.get("task_name", ""),
+            "status": payload.get("status", ""),
             "latency_ms": payload.get("latency_ms", 0),
             "metadata": payload.get("metadata", {}),
         }
