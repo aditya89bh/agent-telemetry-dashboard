@@ -52,6 +52,7 @@ from agent_telemetry_dashboard.metrics import (
     status_breakdown,
     tool_calls_per_run,
 )
+from agent_telemetry_dashboard.multi_agent import agent_utilization_metrics
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = ROOT / "data" / "sample_telemetry.json"
@@ -458,6 +459,37 @@ def render_analytics_tab(df: pd.DataFrame) -> None:
         st.dataframe(detect_anomalies(df), use_container_width=True, hide_index=True)
 
 
+def render_agents_tab(df: pd.DataFrame) -> None:
+    st.subheader("Per-agent observability")
+    agents = sorted(df["agent_name"].unique())
+    selected_agent = st.selectbox("Agent", agents)
+    agent_df = df[df["agent_name"] == selected_agent]
+    render_summary_cards(agent_df)
+
+    left, right = st.columns(2)
+    with left:
+        st.subheader("Agent utilization")
+        st.dataframe(agent_utilization_metrics(agent_df), use_container_width=True, hide_index=True)
+        st.subheader("Agent run quality")
+        st.dataframe(run_quality_scores(agent_df), use_container_width=True, hide_index=True)
+    with right:
+        st.subheader("Agent latency")
+        st.plotly_chart(
+            px.line(agent_df.sort_values("timestamp"), x="timestamp", y="latency_ms", markers=True),
+            use_container_width=True,
+        )
+        st.subheader("Agent confidence and drift")
+        st.plotly_chart(
+            px.line(
+                agent_df.sort_values("timestamp"),
+                x="timestamp",
+                y=["confidence", "drift_score"],
+                markers=True,
+            ),
+            use_container_width=True,
+        )
+
+
 def main() -> None:
     st.title("📡 Agent Telemetry Dashboard")
     st.caption(
@@ -474,8 +506,8 @@ def main() -> None:
         st.warning("No telemetry records match the selected filters.")
         return
 
-    overview, reliability, runs, analytics, timeline, data = st.tabs(
-        ["Overview", "Reliability", "Runs", "Analytics", "Run timeline", "Raw data"]
+    overview, reliability, runs, analytics, agents, timeline, data = st.tabs(
+        ["Overview", "Reliability", "Runs", "Analytics", "Agents", "Run timeline", "Raw data"]
     )
     with overview:
         render_overview_tab(filtered)
@@ -485,6 +517,8 @@ def main() -> None:
         render_runs_tab(filtered)
     with analytics:
         render_analytics_tab(filtered)
+    with agents:
+        render_agents_tab(filtered)
     with timeline:
         render_timeline_tab(filtered)
     with data:
