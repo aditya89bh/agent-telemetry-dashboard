@@ -38,6 +38,7 @@ from agent_telemetry_dashboard.explorer import (
 )
 from agent_telemetry_dashboard.export import analytics_export_json, analytics_quality_csv
 from agent_telemetry_dashboard.filters import filter_telemetry
+from agent_telemetry_dashboard.ingestion import ingest_json_upload
 from agent_telemetry_dashboard.loader import load_telemetry
 from agent_telemetry_dashboard.metrics import (
     confidence_distribution,
@@ -418,6 +419,10 @@ def render_upload_tab() -> None:
             "content_type": uploaded_file.type or "unknown",
         }
     )
+    if uploaded_file.name.lower().endswith(".json"):
+        result = ingest_json_upload(uploaded_file.getvalue(), source_name=uploaded_file.name)
+        st.metric("Imported JSON records", result.records)
+        st.dataframe(result.dataframe, use_container_width=True, hide_index=True)
 
 
 def render_analytics_tab(df: pd.DataFrame) -> None:
