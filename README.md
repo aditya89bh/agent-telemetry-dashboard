@@ -57,6 +57,8 @@ See [`docs/integrations.md`](docs/integrations.md) and [`docs/data_ingestion.md`
 
 See [`docs/memory_observability.md`](docs/memory_observability.md) for the memory retrieval/write schemas, influence tracking, health scoring, replay/audit timelines, memory dashboard, analytics integration, and report export added in Phase 6.
 
+See [`docs/trace_store.md`](docs/trace_store.md) for the persistent trace store abstraction, SQLite backend, repository layer, dataset registry, query helpers, filtering utilities, memory trace persistence, import-to-store pipeline, and saved dataset management added in Phase 7.
+
 ## Features
 
 - Streamlit dashboard using local sample data
@@ -64,6 +66,7 @@ See [`docs/memory_observability.md`](docs/memory_observability.md) for the memor
 - JSON and CSV telemetry loading utilities
 - JSON, CSV, ZIP, and bulk telemetry upload support with import preview, import history, ingestion statistics, normalization, schema migration, and framework adapters
 - Memory-aware observability with retrieval/write traces, influence tracking, effectiveness metrics, conflict and drift detection, lifecycle/replay/audit views, memory health scoring, dashboard integration, analytics integration, and JSON report export
+- Persistent trace store foundation with SQLite storage, dataset registry, repository API, query/filter helpers, import-to-store bridge, memory trace persistence, and saved dataset management
 - Schema versioning support for raw JSON, versioned JSON envelopes, and CSV files
 - Deterministic sample telemetry generator utility
 - Deterministic Pandas metrics, aggregate analytics engine, agent performance scoring, success-rate calculations, and failure-rate calculations, and latency, confidence, drift, memory usage trend analysis, and anomaly detection rules, and tool reliability metrics, and retry effectiveness metrics, and run quality scoring

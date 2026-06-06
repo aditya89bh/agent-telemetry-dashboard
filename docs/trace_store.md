@@ -47,3 +47,38 @@ When `data/datasets.json` contains registered datasets, the dashboard sidebar sh
 ## Saved Dataset Management
 
 `DatasetRegistry` supports registering, listing, retrieving, and removing saved dataset metadata. Dataset removal only updates registry metadata; trace backend deletion can be added later without changing the registry API.
+
+## Minimal Usage
+
+```python
+from agent_telemetry_dashboard.trace_store import (
+    SQLiteTraceStore,
+    StoredTrace,
+    TraceRepository,
+)
+
+repository = TraceRepository(SQLiteTraceStore("data/traces.sqlite"))
+repository.save(
+    StoredTrace(
+        trace_id="trace-1",
+        dataset_id="demo",
+        trace_type="event",
+        run_id="run-1",
+        timestamp="2026-01-01T00:00:00",
+        payload={"event_name": "started"},
+    )
+)
+traces = repository.list_traces("demo")
+```
+
+## Persistence Architecture
+
+The store is intentionally local-first:
+
+1. Ingestion validates telemetry and converts rows to dataframes.
+2. `import_dataframe_to_store` converts rows into `run_summary` traces.
+3. `TraceRepository` writes traces into a backend.
+4. `SQLiteTraceStore` persists normalized traces locally.
+5. Query helpers return `StoredTrace` lists or dataframes for UI workflows.
+
+This keeps existing JSON/CSV dashboard loading operational while enabling durable trace workflows.
