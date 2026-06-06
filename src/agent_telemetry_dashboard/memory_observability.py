@@ -248,3 +248,33 @@ def memory_decision_trace_dataframe(traces: list[MemoryDecisionTrace]) -> pd.Dat
         return pd.DataFrame(columns=columns)
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
     return df.sort_values("timestamp").reset_index(drop=True)
+
+
+def memory_audit_timeline(
+    retrievals: list[MemoryRetrievalTrace],
+    writes: list[MemoryWriteTrace],
+    influences: list[MemoryInfluenceTrace],
+    decisions: list[MemoryDecisionTrace],
+) -> pd.DataFrame:
+    """Create an audit timeline across all memory-aware trace types."""
+    replay = memory_replay_events(retrievals, writes, influences)
+    decision_rows = [
+        {
+            "timestamp": trace.timestamp,
+            "run_id": trace.run_id,
+            "memory_id": ",".join(trace.memory_ids),
+            "event_type": "decision",
+            "detail": trace.decision_summary,
+            "score": trace.confidence_delta,
+        }
+        for trace in decisions
+    ]
+    decision_df = pd.DataFrame(
+        decision_rows,
+        columns=["timestamp", "run_id", "memory_id", "event_type", "detail", "score"],
+    )
+    combined = pd.concat([replay, decision_df], ignore_index=True)
+    if combined.empty:
+        return replay
+    combined["timestamp"] = pd.to_datetime(combined["timestamp"], utc=False)
+    return combined.sort_values(["timestamp", "event_type"]).reset_index(drop=True)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agent_telemetry_dashboard.memory_observability import (
     detect_memory_conflicts,
+    memory_audit_timeline,
     memory_decision_trace_dataframe,
     memory_drift_metrics,
     memory_effectiveness_metrics,
@@ -308,3 +309,23 @@ def test_memory_decision_trace_dataframe_flattens_memory_links() -> None:
     assert df["memory_id"].tolist() == ["mem-1", "mem-2"]
     assert df.loc[0, "decision_id"] == "decision-1"
     assert df.loc[0, "confidence_delta"] == 0.2
+
+
+def test_memory_audit_timeline_includes_decision_events() -> None:
+    decisions = [
+        MemoryDecisionTrace(
+            trace_id="decision-trace-1",
+            run_id="run-1",
+            decision_id="decision-1",
+            timestamp="2026-01-01T00:00:00",
+            memory_ids=["mem-1"],
+            decision_summary="Use remembered preference.",
+            confidence_delta=0.1,
+        )
+    ]
+
+    timeline = memory_audit_timeline([], [], [], decisions)
+
+    assert timeline.loc[0, "event_type"] == "decision"
+    assert timeline.loc[0, "memory_id"] == "mem-1"
+    assert timeline.loc[0, "score"] == 0.1

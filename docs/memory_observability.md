@@ -65,3 +65,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory-to-Decision Tracing
 
 `MemoryDecisionTrace` links memory IDs to explicit agent decisions with a decision ID, summary, rationale, and confidence delta. `memory_decision_trace_dataframe` flattens these traces into one row per memory-decision link for filtering and audit views.
+
+## Memory Audit Timeline
+
+`memory_audit_timeline` combines retrieval, write, influence, and decision traces into a single chronological audit table. This gives developers a unified sequence for reviewing how memory state affected an agent run or dataset.
