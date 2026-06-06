@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Protocol
+from urllib import request
 from uuid import uuid4
 
 from agent_telemetry_dashboard.models import (
@@ -13,6 +16,58 @@ from agent_telemetry_dashboard.models import (
     MemoryWriteTrace,
 )
 from agent_telemetry_dashboard.trace_store import StoredTrace, TraceRepository
+
+
+class TelemetryTransport(Protocol):
+    """Transport protocol used by SDK clients."""
+
+    def send(self, trace: StoredTrace) -> None:
+        """Send one stored trace."""
+
+
+class RepositoryTransport:
+    """Telemetry transport that writes directly to a repository."""
+
+    def __init__(self, repository: TraceRepository) -> None:
+        self.repository = repository
+
+    def send(self, trace: StoredTrace) -> None:
+        """Persist one trace through the repository."""
+        self.repository.save(trace)
+
+
+@dataclass(frozen=True)
+class HTTPTransport:
+    """HTTP transport for sending traces to a collector endpoint."""
+
+    base_url: str
+    timeout_seconds: float = 5.0
+
+    def send(self, trace: StoredTrace) -> None:
+        """POST one trace to the collector API."""
+        url = f"{self.base_url.rstrip('/')}/v1/traces"
+        payload = json.dumps(trace_payload(trace)).encode("utf-8")
+        http_request = request.Request(
+            url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with request.urlopen(http_request, timeout=self.timeout_seconds) as response:
+            if response.status >= 400:
+                raise RuntimeError(f"collector returned HTTP {response.status}")
+
+
+def trace_payload(trace: StoredTrace) -> dict[str, object]:
+    """Convert a stored trace to collector JSON."""
+    return {
+        "trace_id": trace.trace_id,
+        "dataset_id": trace.dataset_id,
+        "trace_type": trace.trace_type,
+        "run_id": trace.run_id,
+        "timestamp": trace.timestamp,
+        "payload": trace.payload,
+    }
 
 
 @dataclass(frozen=True)
@@ -30,9 +85,11 @@ class TelemetryClient:
         self,
         repository: TraceRepository,
         config: TelemetrySDKConfig | None = None,
+        transport: TelemetryTransport | None = None,
     ) -> None:
         self.repository = repository
         self.config = config or TelemetrySDKConfig()
+        self.transport = transport or RepositoryTransport(repository)
 
     def _trace(
         self,
@@ -54,7 +111,8 @@ class TelemetryClient:
     def emit(self, trace_type: str, run_id: str, payload: dict[str, object]) -> StoredTrace:
         """Emit a generic telemetry trace."""
         trace = self._trace(trace_type=trace_type, run_id=run_id, payload=payload)
-        return self.repository.save(trace)
+        self.transport.send(trace)
+        return trace
 
     def emit_event(
         self,
@@ -84,7 +142,8 @@ class TelemetryClient:
             trace_id=trace.trace_id,
             timestamp=trace.timestamp.isoformat(),
         )
-        return self.repository.save(stored)
+        self.transport.send(stored)
+        return stored
 
     def emit_tool_call(
         self,
