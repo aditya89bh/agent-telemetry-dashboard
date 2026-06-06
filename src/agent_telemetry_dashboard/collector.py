@@ -62,6 +62,7 @@ class CollectorAPI:
         self.add_route("POST", "/v1/memory-traces", self.ingest_memory_trace)
         self.add_route("POST", "/v1/tool-calls", self.ingest_tool_call)
         self.add_route("POST", "/v1/run-lifecycle", self.ingest_run_lifecycle)
+        self.add_route("POST", "/v1/traces/batch", self.ingest_trace_batch)
 
     def add_route(self, method: str, path: str, handler: CollectorHandler) -> None:
         """Register a JSON handler for one HTTP method and path."""
@@ -105,6 +106,19 @@ class CollectorAPI:
         )
         self.repository.save(trace)
         return {"accepted": 1, "trace_ids": [trace.trace_id]}
+
+    def ingest_trace_batch(self, payload: JsonObject) -> JsonObject:
+        """Persist a batch of generic telemetry traces."""
+        traces = payload.get("traces", [])
+        if not isinstance(traces, list) or not traces:
+            raise ValueError("traces must be a non-empty list")
+        trace_ids: list[str] = []
+        for trace_payload in traces:
+            if not isinstance(trace_payload, dict):
+                raise ValueError("each trace must be an object")
+            result = self.ingest_trace(trace_payload)
+            trace_ids.extend(str(trace_id) for trace_id in result["trace_ids"])
+        return {"accepted": len(trace_ids), "trace_ids": trace_ids}
 
     def ingest_memory_trace(self, payload: JsonObject) -> JsonObject:
         """Persist one memory trace from the collector API."""
