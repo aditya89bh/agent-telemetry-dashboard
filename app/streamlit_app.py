@@ -10,6 +10,7 @@ import streamlit as st
 
 from agent_telemetry_dashboard.explorer import (
     confidence_evolution,
+    drift_evolution,
     filter_runs_by_status,
     memory_event_timeline,
     run_detail,
@@ -309,6 +310,19 @@ def render_runs_tab(df: pd.DataFrame) -> None:
             confidence_evolution(df, detail),
             x="timestamp",
             y="confidence",
+            color="agent_name",
+            markers=True,
+            hover_data=["run_id"],
+        ),
+        use_container_width=True,
+    )
+
+    st.subheader("Drift evolution")
+    st.plotly_chart(
+        px.line(
+            drift_evolution(df, detail),
+            x="timestamp",
+            y="drift_score",
             color="agent_name",
             markers=True,
             hover_data=["run_id"],

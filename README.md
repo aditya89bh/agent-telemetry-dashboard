@@ -59,7 +59,7 @@ The sidebar lets you load a local telemetry file and filter by agent, status, ta
   - Failure rate
   - Latency distribution
   - Status-aware confidence distribution and per-agent confidence evolution
-  - Drift score over time
+  - Drift score over time and per-agent drift evolution
   - Retry count, failures, and failed runs per task
 - Searchable run listing with dedicated status filtering, run detail, event, memory, tool-call, and run timeline views
 - Sidebar filters for agent name, run status, task name, date range, and minimum confidence
