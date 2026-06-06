@@ -55,4 +55,8 @@ The upload page supports selecting multiple telemetry files at once. `ingest_bul
 
 Before developers inspect the full imported dataframe, the upload flow now shows an import preview summary with record count, date range, statuses, and a compact table of representative run fields. This keeps large imports reviewable without hiding access to the full dataset.
 
+## Schema Migration
+
+The ingestion pipeline supports explicit schema migration before normalization and validation. Current telemetry uses schema version `1.0`; legacy `0.9` records are migrated by mapping historical fields such as `agent_id` and `task` into the current schema. Unknown schema versions are rejected with `IngestionError` so developers do not accidentally analyze incompatible telemetry.
+
 The existing sidebar file path loader remains available for backward-compatible local telemetry loading.

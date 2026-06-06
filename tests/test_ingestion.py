@@ -12,6 +12,7 @@ from agent_telemetry_dashboard.ingestion import (
     ingest_csv_upload,
     ingest_json_upload,
     ingest_zip_upload,
+    migrate_telemetry_record,
     normalize_telemetry_record,
     validate_ingestion_records,
 )
@@ -134,3 +135,25 @@ def test_ingest_bulk_uploads_combines_multiple_files() -> None:
     assert result.format == "json"
     assert result.records == 2
     assert result.dataframe["run_id"].tolist() == ["run-json-1", "run-json-2"]
+
+
+def test_migrate_telemetry_record_supports_legacy_schema() -> None:
+    legacy = valid_record() | {
+        "schema_version": "0.9",
+        "agent_id": "legacy-agent",
+    }
+    legacy.pop("agent_name")
+
+    migrated = migrate_telemetry_record(legacy)
+
+    assert migrated["schema_version"] == "1.0"
+    assert migrated["agent_name"] == "legacy-agent"
+
+
+def test_migrate_telemetry_record_rejects_unknown_schema() -> None:
+    try:
+        migrate_telemetry_record({"schema_version": "9.9", "run_id": "future"})
+    except IngestionError as exc:
+        assert "Unsupported telemetry schema version" in str(exc)
+    else:  # pragma: no cover - explicit assertion path for readability.
+        raise AssertionError("Expected IngestionError")

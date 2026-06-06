@@ -27,6 +27,8 @@ STATUS_ALIASES = {
     "failure": "failed",
     "warn": "warning",
 }
+SUPPORTED_SCHEMA_VERSION = "1.0"
+MIGRATABLE_SCHEMA_VERSIONS = {"0.9"}
 
 
 @dataclass(frozen=True)
@@ -103,10 +105,33 @@ def normalize_telemetry_record(record: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def migrate_telemetry_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Migrate older telemetry records into the current dashboard schema version."""
+    migrated = dict(record)
+    schema_version = str(migrated.get("schema_version", SUPPORTED_SCHEMA_VERSION))
+    if schema_version == SUPPORTED_SCHEMA_VERSION:
+        return migrated
+    if schema_version not in MIGRATABLE_SCHEMA_VERSIONS:
+        raise IngestionError(
+            f"Unsupported telemetry schema version: {schema_version}",
+            source_name=str(migrated.get("run_id", "unknown")),
+        )
+
+    if schema_version == "0.9":
+        if "agent_id" in migrated and "agent_name" not in migrated:
+            migrated["agent_name"] = migrated.pop("agent_id")
+        if "task" in migrated and "task_name" not in migrated:
+            migrated["task_name"] = migrated.pop("task")
+        migrated["schema_version"] = SUPPORTED_SCHEMA_VERSION
+    return migrated
+
+
 def normalize_telemetry_records(raw_records: list[Any]) -> list[Any]:
     """Normalize a collection of raw telemetry records where possible."""
     return [
-        normalize_telemetry_record(item) if isinstance(item, dict) else item
+        normalize_telemetry_record(migrate_telemetry_record(item))
+        if isinstance(item, dict)
+        else item
         for item in raw_records
     ]
 
