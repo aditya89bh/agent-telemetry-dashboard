@@ -39,8 +39,10 @@ The dashboard is organized into four tabs:
 2. **Reliability** — failure rate, retry totals, failed-run counts, confidence, and latency.
 3. **Runs** — compact run listing for session exploration.
 4. **Analytics** — aggregate metrics, scoring, trend analysis, anomalies, tool reliability, and retry effectiveness.
-5. **Run timeline** — task-level run timeline using start timestamp and latency.
-6. **Raw data** — filtered telemetry table for inspection and export workflows.
+5. **Agents** — per-agent observability, multi-agent comparison, and workflow visualization.
+6. **Upload** — JSON, CSV, ZIP, and bulk telemetry ingestion with preview and statistics.
+7. **Run timeline** — task-level run timeline using start timestamp and latency.
+8. **Raw data** — filtered telemetry table for inspection and export workflows.
 
 The sidebar lets you load a local telemetry file and filter by agent, status, task, date range, and minimum confidence.
 
@@ -50,11 +52,14 @@ See [`docs/telemetry_analytics.md`](docs/telemetry_analytics.md) for the analyti
 
 See [`docs/multi_agent_observability.md`](docs/multi_agent_observability.md) for the multi-agent registry, hierarchy, communication, orchestration, and workflow features added in Phase 4.
 
+See [`docs/integrations.md`](docs/integrations.md) and [`docs/data_ingestion.md`](docs/data_ingestion.md) for the upload workflow, ingestion pipeline, schema migration, and LangChain, CrewAI, and OpenAI Agents adapters added in Phase 5.
+
 ## Features
 
 - Streamlit dashboard using local sample data
 - Pydantic models for strict typed telemetry validation
 - JSON and CSV telemetry loading utilities
+- JSON, CSV, ZIP, and bulk telemetry upload support with import preview, import history, ingestion statistics, normalization, schema migration, and framework adapters
 - Schema versioning support for raw JSON, versioned JSON envelopes, and CSV files
 - Deterministic sample telemetry generator utility
 - Deterministic Pandas metrics, aggregate analytics engine, agent performance scoring, success-rate calculations, and failure-rate calculations, and latency, confidence, drift, memory usage trend analysis, and anomaly detection rules, and tool reliability metrics, and retry effectiveness metrics, and run quality scoring
