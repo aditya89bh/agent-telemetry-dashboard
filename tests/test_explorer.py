@@ -9,6 +9,7 @@ from agent_telemetry_dashboard.explorer import (
     run_detail,
     run_event_timeline,
     run_listing,
+    run_metadata,
     search_runs,
     tool_call_timeline,
 )
@@ -96,3 +97,12 @@ def test_drift_evolution_scopes_to_selected_agent() -> None:
 
     assert set(evolution["agent_name"]) == {detail["agent_name"]}
     assert evolution["timestamp"].is_monotonic_increasing
+
+
+def test_run_metadata_contains_display_fields() -> None:
+    df = load_telemetry(DATA)
+    metadata = run_metadata(run_detail(df, "run-001"))
+
+    assert metadata["Run ID"] == "run-001"
+    assert metadata["Agent"] == "MemoryScout"
+    assert "Schema version" in metadata

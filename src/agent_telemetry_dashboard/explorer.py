@@ -149,3 +149,16 @@ def drift_evolution(df: pd.DataFrame, run: pd.Series) -> pd.DataFrame:
     return agent_runs[["timestamp", "run_id", "agent_name", "drift_score"]].sort_values(
         "timestamp"
     )
+
+
+def run_metadata(run: pd.Series) -> dict[str, object]:
+    """Return display-ready metadata for a selected run."""
+    return {
+        "Run ID": run["run_id"],
+        "Agent": run["agent_name"],
+        "Task": run["task_name"],
+        "Timestamp": run["timestamp"],
+        "Status": run["status"],
+        "Latency (ms)": int(run["latency_ms"]),
+        "Schema version": run["schema_version"],
+    }

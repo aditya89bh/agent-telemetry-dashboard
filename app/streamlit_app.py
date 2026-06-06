@@ -15,6 +15,7 @@ from agent_telemetry_dashboard.explorer import (
     memory_event_timeline,
     run_detail,
     run_event_timeline,
+    run_metadata,
     search_runs,
     tool_call_timeline,
 )
@@ -244,6 +245,12 @@ def render_runs_tab(df: pd.DataFrame) -> None:
     st.subheader("Run detail")
     selected_run = st.selectbox("Select run", visible_runs["run_id"].tolist())
     detail = run_detail(df, selected_run)
+    st.subheader("Run metadata")
+    metadata = run_metadata(detail)
+    meta_cols = st.columns(4)
+    for index, (label, value) in enumerate(metadata.items()):
+        meta_cols[index % 4].metric(label, value)
+
     left, right = st.columns(2)
     with left:
         st.write(
