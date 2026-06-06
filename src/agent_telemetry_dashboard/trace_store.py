@@ -125,3 +125,30 @@ class SQLiteTraceStore:
             )
             for row in rows
         ]
+
+
+class TraceRepository:
+    """High-level repository API over a trace store backend."""
+
+    def __init__(self, store: TraceStore) -> None:
+        self.store = store
+        self.store.initialize()
+
+    def save(self, trace: StoredTrace) -> StoredTrace:
+        """Persist and return a trace."""
+        self.store.append_trace(trace)
+        return trace
+
+    def list_traces(self, dataset_id: str, limit: int = 100) -> list[StoredTrace]:
+        """List traces for a dataset."""
+        return self.store.query_traces(TraceQuery(dataset_id=dataset_id, limit=limit))
+
+    def list_run_traces(
+        self, dataset_id: str,
+        run_id: str,
+        limit: int = 100,
+    ) -> list[StoredTrace]:
+        """List traces for one run in a dataset."""
+        return self.store.query_traces(
+            TraceQuery(dataset_id=dataset_id, run_id=run_id, limit=limit)
+        )

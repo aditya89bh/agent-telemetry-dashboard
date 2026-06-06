@@ -15,3 +15,7 @@ Phase 7 adds a persistent telemetry platform foundation.
 ## SQLite Backend
 
 `SQLiteTraceStore` implements the trace store contract with a local SQLite database. It creates a `traces` table, stores trace payloads as JSON, indexes dataset IDs, and supports portable queries by dataset, trace type, run ID, and limit.
+
+## Trace Repository Layer
+
+`TraceRepository` provides a higher-level API over any `TraceStore` backend. It initializes the backend, saves traces, lists traces by dataset, and lists traces for a specific run. Dashboard and SDK code should prefer this repository layer over directly calling backend methods.
