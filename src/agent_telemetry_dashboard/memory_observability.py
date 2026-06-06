@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from agent_telemetry_dashboard.models import (
+    MemoryDecisionTrace,
     MemoryInfluenceTrace,
     MemoryRetrievalTrace,
     MemoryWriteTrace,
@@ -209,6 +210,40 @@ def memory_replay_events(
 
     columns = ["timestamp", "run_id", "memory_id", "event_type", "detail", "score"]
     df = pd.DataFrame(events, columns=columns)
+    if df.empty:
+        return pd.DataFrame(columns=columns)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)
+    return df.sort_values("timestamp").reset_index(drop=True)
+
+
+def memory_decision_trace_dataframe(traces: list[MemoryDecisionTrace]) -> pd.DataFrame:
+    """Flatten memory-to-decision traces into one row per memory-decision link."""
+    columns = [
+        "trace_id",
+        "run_id",
+        "decision_id",
+        "memory_id",
+        "timestamp",
+        "decision_summary",
+        "rationale",
+        "confidence_delta",
+    ]
+    rows: list[dict[str, object]] = []
+    for trace in traces:
+        for memory_id in trace.memory_ids:
+            rows.append(
+                {
+                    "trace_id": trace.trace_id,
+                    "run_id": trace.run_id,
+                    "decision_id": trace.decision_id,
+                    "memory_id": memory_id,
+                    "timestamp": trace.timestamp,
+                    "decision_summary": trace.decision_summary,
+                    "rationale": trace.rationale,
+                    "confidence_delta": trace.confidence_delta,
+                }
+            )
+    df = pd.DataFrame(rows, columns=columns)
     if df.empty:
         return pd.DataFrame(columns=columns)
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=False)

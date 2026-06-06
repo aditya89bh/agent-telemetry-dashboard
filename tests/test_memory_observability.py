@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agent_telemetry_dashboard.memory_observability import (
     detect_memory_conflicts,
+    memory_decision_trace_dataframe,
     memory_drift_metrics,
     memory_effectiveness_metrics,
     memory_influence_dataframe,
@@ -12,6 +13,7 @@ from agent_telemetry_dashboard.memory_observability import (
     memory_replay_events,
 )
 from agent_telemetry_dashboard.models import (
+    MemoryDecisionTrace,
     MemoryInfluenceTrace,
     MemoryRetrievalTrace,
     MemoryWriteTrace,
@@ -285,3 +287,24 @@ def test_memory_replay_events_combines_memory_activity_for_run() -> None:
 
     assert replay["event_type"].tolist() == ["retrieval", "write:update", "influence:decision"]
     assert replay.loc[0, "detail"] == "Retrieved preference"
+
+
+def test_memory_decision_trace_dataframe_flattens_memory_links() -> None:
+    traces = [
+        MemoryDecisionTrace(
+            trace_id="decision-trace-1",
+            run_id="run-1",
+            decision_id="decision-1",
+            timestamp="2026-01-01T00:03:00",
+            memory_ids=["mem-1", "mem-2"],
+            decision_summary="Use concise response style.",
+            rationale="User preference memories supported this choice.",
+            confidence_delta=0.2,
+        )
+    ]
+
+    df = memory_decision_trace_dataframe(traces)
+
+    assert df["memory_id"].tolist() == ["mem-1", "mem-2"]
+    assert df.loc[0, "decision_id"] == "decision-1"
+    assert df.loc[0, "confidence_delta"] == 0.2

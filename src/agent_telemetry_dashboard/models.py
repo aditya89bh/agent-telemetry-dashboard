@@ -157,3 +157,18 @@ class MemoryInfluenceTrace(BaseModel):
     target: str = Field(default="", max_length=200)
     evidence: str = Field(default="", max_length=500)
     influence_strength: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class MemoryDecisionTrace(BaseModel):
+    """Trace linking one or more memory items to an agent decision."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    trace_id: str = Field(min_length=1, max_length=100)
+    run_id: str = Field(min_length=1, max_length=80)
+    decision_id: str = Field(min_length=1, max_length=120)
+    timestamp: datetime
+    memory_ids: list[str] = Field(default_factory=list, max_length=50)
+    decision_summary: str = Field(default="", max_length=500)
+    rationale: str = Field(default="", max_length=500)
+    confidence_delta: float = Field(default=0.0, ge=-1.0, le=1.0)

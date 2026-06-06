@@ -61,3 +61,7 @@ This lets the dashboard distinguish passive retrieval from active memory lifecyc
 ## Memory Replay View
 
 `memory_replay_events` combines retrieval, write, and influence traces into one chronological replay. It can be filtered by `run_id`, making it possible to reconstruct when a memory was retrieved, changed, and used during a specific agent run.
+
+## Memory-to-Decision Tracing
+
+`MemoryDecisionTrace` links memory IDs to explicit agent decisions with a decision ID, summary, rationale, and confidence delta. `memory_decision_trace_dataframe` flattens these traces into one row per memory-decision link for filtering and audit views.
